@@ -338,7 +338,7 @@ $options->next_page_pattern = "//a[".join(" or ", $next_page_pattern)."]";
 /// DO NOT CHANGE ANYTHING BELOW THIS ///////////
 /////////////////////////////////////////////////
 
-if (!defined('_FF_FTR_VERSION')) define('_FF_FTR_VERSION', '2.9.5');
+if (!defined('_FF_FTR_VERSION')) define('_FF_FTR_VERSION', '2.9.6');
 
 if ((basename(__FILE__) == 'config.php') && (file_exists(dirname(__FILE__).'/custom_config.php'))) {
 	require_once(dirname(__FILE__).'/custom_config.php');

@@ -56,16 +56,17 @@ if (!defined('_FF_FTR_INDEX')) {
   <body>
 	<div class="container" style="width: 800px; padding-bottom: 60px;">
 	<h1 style="padding-top: 5px;">Full-Text RSS <?php echo _FF_FTR_VERSION; ?> <span style="font-size: .7em; font-weight: normal;">&mdash; from <a href="http://fivefilters.org">FiveFilters.org</a></span></h1>
+        <div style="text-align:right">Enhanced by <a href="http://pulipuli.blogspot.tw">Pulipuli Chen</a></div>
     <form method="get" action="makefulltextfeed.php" id="form" class="form-horizontal">
 	<fieldset>
-		<legend>Create full-text feed from feed or webpage URL</legend>
+		<legend>Create full-text feed from feed or webpage URL<br />由RSS或URL網址建立全文的資訊來源</legend>
 		<div class="control-group">
-			<label class="control-label" for="url">Enter URL</label>
+			<label class="control-label" for="url">Enter URL / 請輸入網址</label>
 			<div class="controls"><input type="text" id="url" name="url" style="width: 450px;" title="URL" value="<?php echo $options->default_url ?>" data-content="Typically this is a URL for a partial feed which we transform into a full-text feed. But it can also be a standard web page URL, in which case we'll extract its content and return it in a 1-item feed." /></div>
 		</div>
 	</fieldset>
 	<fieldset>
-	<legend>Options</legend>
+	<legend>Options / 選項</legend>
 	<!--
 	<?php if ($options->extraction_pattern == 'user') { ?>
 	<div class="control-group">
@@ -83,7 +84,7 @@ if (!defined('_FF_FTR_INDEX')) {
 	</div>
 	<?php } ?>
 	<div class="control-group">
-	<label class="control-label" for="max">Max items</label>
+	<label class="control-label" for="max">Max items / 最多抽取文件篇數</label>
 	<div class="controls">
 	<?php
 	// echo '<select name="max" id="max" class="input-medium">'
@@ -95,7 +96,7 @@ if (!defined('_FF_FTR_INDEX')) {
                     $msg = 'Limit: '.$options->max_entries.' (with key: '.$options->max_entries_with_key.')';
                     $msg_more = 'If you need more items, change <tt>max_entries</tt> (and <tt>max_entries_with_key</tt>) in config.';
             } else {
-                    $msg = 'Limit: '.$options->max_entries;
+                    $msg = 'Limit / 上限: '.$options->max_entries;
                     $msg_more = 'If you need more items, change <tt>max_entries</tt> in config.';
             }
 	?>	
@@ -104,29 +105,29 @@ if (!defined('_FF_FTR_INDEX')) {
 	</div>
 	</div>
 	<div class="control-group">
-	<label class="control-label" for="links">Links</label>
+	<label class="control-label" for="links">Links / 連結</label>
 	<div class="controls">
 	<select name="links" id="links" class="input-medium" title="Link handling" data-content="By default, links within the content are preserved. Change this field if you'd like links removed, or included as footnotes.">
-		<option value="preserve" selected="selected">preserve</option>
-		<option value="footnotes">add to footnotes</option>
-		<option value="remove">remove</option>
+		<option value="preserve" selected="selected">preserve / 保留</option>
+		<option value="footnotes">add to footnotes / 加到文件最後</option>
+		<option value="remove">remove / 移除</option>
 	</select>
 	</div>
 	</div>
 	<?php if ($options->exclude_items_on_fail == 'user') { ?>
 	<div class="control-group">
-	<label class="control-label" for="exc">If extraction fails</label>
+	<label class="control-label" for="exc">If extraction fails / 抽取失敗時的動作 </label>
 	<div class="controls">
 	<select name="exc" id="exc" title="Item handling when extraction fails" data-content="If extraction fails, we can remove the item from the feed or keep it in.<br /><br />Keeping the item will keep the title, URL and original description (if any) found in the feed. In addition, we insert a message before the original description notifying you that extraction failed.">
-		<option value="" selected="selected">keep item in feed</option>
-		<option value="1">remove item from feed</option>
+		<option value="" selected="selected">keep item in feed / 仍留在資訊提供裡</option>
+		<option value="1">remove item from feed / 移除該文件</option>
 	</select>
 	</div>
 	</div>
 	<?php } ?>
 	
 	<div class="control-group">
-	<label class="control-label" for="json">JSON output</label>
+	<label class="control-label" for="json">JSON output / JSON輸出</label>
 	<div class="controls">
 	<input type="checkbox" name="format" value="json" id="json" style="margin-top: 7px;" />
 	</div>
@@ -140,10 +141,10 @@ if (!defined('_FF_FTR_INDEX')) {
 	
 	
 	<ul class="nav nav-tabs">
-	<li class="active"><a href="#start" data-toggle="tab">Getting Started</a></li>
-	<li><a href="#general" data-toggle="tab">General Info</a></li>
-	<li><a href="#updates" data-toggle="tab">Updates</a></li>
-	<li><a href="#license" data-toggle="tab">License</a></li>
+	<li class="active"><a href="#start" data-toggle="tab">Getting Started / 開始使用</a></li>
+	<li><a href="#general" data-toggle="tab">General Info / 資訊</a></li>
+	<li><a href="#updates" data-toggle="tab">Updates / 更新</a></li>
+	<li><a href="#license" data-toggle="tab">License / 授權</a></li>
 	</ul>
 	
 	<div class="tab-content">
@@ -259,6 +260,12 @@ if (!defined('_FF_FTR_INDEX')) {
 	?>
 	<p>Your version of Full-Text RSS: <strong><?php echo _FF_FTR_VERSION; ?></strong><br />
 	Your version of Site Patterns: <strong><?php echo (isset($site_config_version) ? $site_config_version : 'Unknown'); ?></strong>
+        <br />
+        This version has been enhanced by <a href="http://pulipuli.blogspot.tw">Pulipuli Chen</a> with:
+        <ul>
+            <li>Multi-pages integration / 多頁面整合</li>
+            <li>Part of the interface support Traditional Chinese / 部分介面提供正體中文</li>
+        </ul>
 	</p>
 	<p>To see if you have the latest versions, and to update your site patterns, please try our <a href="admin/update.php">update tool</a>.</p>
 	<p>If you've purchased this from FiveFilters.org, you'll receive notification when we release a new version or update the site patterns.</p>
