@@ -63,6 +63,9 @@ if (!defined('_FF_FTR_INDEX')) {
 		<div class="control-group">
 			<label class="control-label" for="url">Enter URL / 請輸入網址</label>
 			<div class="controls"><input type="text" id="url" name="url" style="width: 450px;" title="URL" value="<?php echo $options->default_url ?>" data-content="Typically this is a URL for a partial feed which we transform into a full-text feed. But it can also be a standard web page URL, in which case we'll extract its content and return it in a 1-item feed." /></div>
+                        <div style="text-align:center;">
+                            This URL always got extration failed? <a href="https://github.com/pulipulichen/full-text-rss/issues/new" target="issue">Please report this URL to issue.</a> <br />
+                            一直抽取失敗嗎？請到<a href="https://github.com/pulipulichen/full-text-rss/issues/new" target="issue">回報發生的RSS feed資訊來源網址</a>（需要註冊，免費）</div>
 		</div>
 	</fieldset>
 	<fieldset>
