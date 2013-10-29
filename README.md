@@ -9,6 +9,10 @@ This version has been enhanced by <a href="http://pulipuli.blogspot.tw">Pulipuli
 - Multi-pages integration / 多頁面整合
 - Part of the interface support Traditional Chinese / 部分介面提供正體中文
 
+If extraction always failed, please try to increase "max_execution_time", "max_input_time", and "memory_limit" in your server's php.ini and restart server.
+
+如果文章抽取總是失敗，請嘗試設定php.ini的"max_execution_time"、"max_input_time"與"memory_limit"，並重新啟動伺服器。
+
 For best extraction results, and to help us sustain the project, you can purchase the most up-to-date version at <http://fivefilters.org/content-only/#download> - so if you like this free version, please consider supporting us by purchasing the latest release. 
 
 If you have no need for the latest release, but would still like to contribute something, you can donate via [Gittip](https://www.gittip.com/fivefilters/) or [Flattr](https://flattr.com/profile/k1m).

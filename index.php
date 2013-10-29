@@ -156,10 +156,11 @@ if (!defined('_FF_FTR_INDEX')) {
 	<h3>Thank you!</h3>
 	
 	<p>Thanks for downloading and setting up Full-Text RSS from FiveFilters.org. The software runs on most web hosting environments, but to make sure everything works as it should, please follow the steps below.</p>
-	
+
 	<h3>Quick Start</h3>
 	<ol>
 		<li><a href="ftr_compatibility_test.php">Check server compatibility</a> to make sure this server meets the requirements</li>
+                <li>Edit your server's php.ini, increase "max_execution_time" to 3000, "max_input_time" to 600, and "memory_limit" to 128MB. Then reboot your server.</li>
 		<li>Enter a feed or article URL in the form above and click 'Create Feed' <a href="http://help.fivefilters.org/customer/portal/articles/223127-suggested-feeds-and-articles" rel="tooltip" title="Need suggestions? We've got a number of feeds and articles you can try" class="label">?</a></li>
 		<li>If the generated full-text feed looks okay, copy the URL from your browser's address bar and use it in your news reader or application</li>
 		<li><strong>That's it!</strong> (Although see below if you'd like to customise further.)</li>
