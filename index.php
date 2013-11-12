@@ -26,7 +26,10 @@ if (!defined('_FF_FTR_INDEX')) {
 	$(document).ready(function() {
 		// remove http scheme from urls before submitting
 		$('#form').submit(function() {
-			$('#url').val($('#url').val().replace(/^http:\/\//i, ''));
+                        var _url = $('#url').val();
+                        _url = _url.replace(/^view-source:/i, '');
+                        _url = _url.replace(/^http:\/\//i, '');
+			$('#url').val(_url);
 			return true;
 		});
 		// popovers
@@ -37,6 +40,7 @@ if (!defined('_FF_FTR_INDEX')) {
 		$('#exc').popover({offset: 10, placement: 'left', trigger: 'focus', html: true});
 		// tooltips
 		$('a[rel=tooltip]').tooltip();
+                
 	});
 	</script>
 	<style>
