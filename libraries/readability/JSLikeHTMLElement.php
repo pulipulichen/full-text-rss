@@ -57,7 +57,7 @@ class JSLikeHTMLElement extends DOMElement
 					// $value is probably ill-formed
 					$f = new DOMDocument();
 					if (function_exists('mb_convert_encoding')) {
-                                            $value = mb_convert_encoding($value, 'HTML-ENTITIES', 'UTF-8');
+                                            //$value = mb_convert_encoding($value, 'HTML-ENTITIES', 'UTF-8');
                                         }
 					// Using <htmlfragment> will generate a warning, but so will bad HTML
 					// (and by this point, bad HTML is what we've got).

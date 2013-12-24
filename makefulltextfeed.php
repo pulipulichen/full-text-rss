@@ -731,7 +731,7 @@ foreach ($items as $key => $item) {
 		// add effective URL (URL after redirects)
 		if (isset($effective_url)) {
 			//TODO: ensure $effective_url is valid witout - sometimes it causes problems, e.g.
-			//http://www.siasat.pk/forum/showthread.php?108883-Pakistan-Chowk-by-Rana-Mubashir-–-25th-March-2012-Special-Program-from-Liari-(Karachi)
+			//http://www.siasat.pk/forum/showthread.php?108883-Pakistan-Chowk-by-Rana-Mubashir-â€“-25th-March-2012-Special-Program-from-Liari-(Karachi)
 			//temporary measure: use utf8_encode()
 			$newitem->addElement('dc:identifier', remove_url_cruft(utf8_encode($effective_url)));
 		} else {

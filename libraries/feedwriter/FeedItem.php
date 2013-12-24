@@ -90,7 +90,7 @@
 	*/
 	public function setTitle($title) 
 	{
-		$this->addElement('title', $title);  	
+            $this->addElement('title', $title);  	
 	}
 	
 	/**

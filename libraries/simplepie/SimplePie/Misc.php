@@ -331,7 +331,7 @@ class SimplePie_Misc
 	{
 		$input = SimplePie_Misc::encoding($input);
 		$output = SimplePie_Misc::encoding($output);
-
+                
 		// We fail to fail on non US-ASCII bytes
 		if ($input === 'US-ASCII')
 		{
@@ -351,16 +351,16 @@ class SimplePie_Misc
 		{
 			return SimplePie_Misc::windows_1252_to_utf8($data);
 		}
-		// This is second, as behaviour of this varies only with PHP version (the middle part of this expression checks the encoding is supported).
-		elseif (function_exists('mb_convert_encoding') && ($return = SimplePie_Misc::change_encoding_mbstring($data, $input, $output)))
-		{
-			return $return;
- 		}
 		// This is last, as behaviour of this varies with OS userland and PHP version
 		elseif (function_exists('iconv') && ($return = SimplePie_Misc::change_encoding_iconv($data, $input, $output)))
 		{
 			return $return;
 		}
+		// This is second, as behaviour of this varies only with PHP version (the middle part of this expression checks the encoding is supported).
+		elseif (function_exists('mb_convert_encoding') && ($return = SimplePie_Misc::change_encoding_mbstring($data, $input, $output)))
+		{
+			return $return;
+ 		}
 		// If we can't do anything, just fail
 		else
 		{
@@ -369,7 +369,7 @@ class SimplePie_Misc
 	}
 
 	protected static function change_encoding_mbstring($data, $input, $output)
-	{
+	{   
 		if ($input === 'windows-949')
 		{
 			$input = 'EUC-KR';
@@ -400,7 +400,7 @@ class SimplePie_Misc
 
 	protected static function change_encoding_iconv($data, $input, $output)
 	{
-		return @iconv($input, $output, $data);
+		return @iconv($input, $output . "//IGNORE", $data);
 	}
 
 	/**

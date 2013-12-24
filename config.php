@@ -334,6 +334,11 @@ $next_page_pattern = array(
 
 $options->next_page_pattern = "//a[".join(" or ", $next_page_pattern)."]";
 
+// 特殊轉換的網站
+$options->convert_encoding = array(
+    'http://www.linuxeden.com/rss.php' => "gb2312"
+);
+
 /////////////////////////////////////////////////
 /// DO NOT CHANGE ANYTHING BELOW THIS ///////////
 /////////////////////////////////////////////////

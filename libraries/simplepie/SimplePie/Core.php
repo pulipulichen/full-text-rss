@@ -1672,6 +1672,8 @@ class SimplePie_Core
 			$encodings = array_merge($encodings, SimplePie_Misc::xml_encoding($data));
 			$encodings[] = 'UTF-8';
 			$encodings[] = 'ISO-8859-1';
+                        $encodings[] = 'gb2312';
+                        $encodings[] = 'big-5';
 
 			// There's no point in trying an encoding twice
 			$encodings = array_unique($encodings);
@@ -1688,13 +1690,31 @@ class SimplePie_Core
 			foreach ($encodings as $encoding)
 			{
 				// Change the encoding to UTF-8 (as we always use UTF-8 internally)
-				if ($utf8_data = SimplePie_Misc::change_encoding($data, $encoding, 'UTF-8'))
+                                $utf8_data = $data;
+                                
+                                if (key_exists($this->feed_url, $options->convert_encoding)) {
+                                    //echo $this->feed_url;
+                                    $utf8_data = iconv($options->convert_encoding[$this->feed_url], "UTF-8//IGNORE", $utf8_data);
+                                }
+                                else {
+                                    $utf8_data = SimplePie_Misc::change_encoding($utf8_data, $encoding, 'UTF-8');
+                                }
+                                /*
+                                if (mb_detect_encoding($utf8_data) != "UTF-8") {
+                                    $utf8_data = SimplePie_Misc::change_encoding($utf8_data, $encoding, 'UTF-8');
+                                }
+                                 */
+                                //$utf8_data = mb_convert_encoding($utf8_data, "UTF-8", "gb2312");
+                                //$utf8_data = SimplePie_Misc::change_encoding($utf8_data, $encoding, 'UTF-8');
+                                //echo $utf8_data;
+                                if (true)
 				{
 					// Create new parser
 					$parser = new $this->parser_class();
 
 					// If it's parsed fine
 					if ($parser->parse($utf8_data, 'UTF-8'))
+                                        //if ($parser->parse($utf8_data, 'gb2312'))
 					{
 						$this->data = $parser->get_data();
 						if ($this->get_type() & ~SIMPLEPIE_TYPE_NONE)
@@ -2035,38 +2055,50 @@ class SimplePie_Core
 
 	public function get_title()
 	{
+            $title = NULL;
 		if ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'title'))
 		{
-			return $this->sanitize($return[0]['data'], SimplePie_Misc::atom_10_construct_type($return[0]['attribs']), $this->get_base($return[0]));
+			$title = $this->sanitize($return[0]['data'], SimplePie_Misc::atom_10_construct_type($return[0]['attribs']), $this->get_base($return[0]));
 		}
 		elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ATOM_03, 'title'))
 		{
-			return $this->sanitize($return[0]['data'], SimplePie_Misc::atom_03_construct_type($return[0]['attribs']), $this->get_base($return[0]));
+			$title = $this->sanitize($return[0]['data'], SimplePie_Misc::atom_03_construct_type($return[0]['attribs']), $this->get_base($return[0]));
 		}
 		elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_RSS_10, 'title'))
 		{
-			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
+			$title = $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
 		}
 		elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_RSS_090, 'title'))
 		{
-			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
+			$title = $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
 		}
 		elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_RSS_20, 'title'))
 		{
-			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
+			$title = $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_MAYBE_HTML, $this->get_base($return[0]));
 		}
 		elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_DC_11, 'title'))
 		{
-			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_TEXT);
+			$title = $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_TEXT);
 		}
 		elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_DC_10, 'title'))
 		{
-			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_TEXT);
+			$title = $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_TEXT);
 		}
-		else
-		{
-			return null;
-		}
+                
+            
+            //$title = mb_convert_encoding($title, 'UTF-8', "gbk");
+            //$title = iconv("UTF-8", 'HTML-ENTITIES', $title);
+            //$title = iconv("gbk", 'UTF-8', $title);
+            //$title = mb_convert_encoding($title, 'UTF-8', "gbk, gb2312, big-5");
+            //
+            //$title = mb_convert_encoding($title, "ENC-CN");
+            //$title = iconv("EUC-CN, HZ, GBK, CP936", 'UTF-8', addcslashes($title));
+            //$title = mb_convert_encoding($title, 'UTF-8', "EUC-CN");
+                //$title = utf8_encode($title);
+                //$title = iconv("gb2312", "UTF-8//TRANSLIT//IGNORE",  $title); 
+            
+                //$title = mb_detect_encoding($title, "gb2312");
+            return $title;
 	}
 
 	public function get_category($key = 0)
