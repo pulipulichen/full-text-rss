@@ -83,7 +83,7 @@ class Readability
 	**/
 	public $regexps = array(
 		'unlikelyCandidates' => '/combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter/i',
-		'okMaybeItsACandidate' => '/and|article|body|column|main|shadow/i',
+		'okMaybeItsACandidate' => '/and|article|body|column|main|shadow|postbody/i',
 		'positive' => '/article|body|content|entry|hentry|main|page|pagination|post|text|blog|story/i',
 		'negative' => '/combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|shoutbox|sidebar|sponsor|shopping|tags|tool|widget/i',
 		'divToPElements' => '/<(a|blockquote|dl|div|img|ol|p|pre|table|ul)/i',
@@ -107,13 +107,15 @@ class Readability
 	* @param string (optional) URL associated with HTML (used for footnotes)
 	*/	
 	function __construct($html, $url=null)
-	{
+	{   
 		/* Turn all double br's into p's */
 		$html = preg_replace($this->regexps['replaceBrs'], '</p><p>', $html);
 		$html = preg_replace($this->regexps['replaceFonts'], '<$1span>', $html);
+                //echo "readable 1: ".$html;
                 if (function_exists('mb_convert_encoding')) {
                     $html = mb_convert_encoding($html, 'HTML-ENTITIES', "UTF-8");
                 }
+                //echo "readable 2: ".$html;
 		$this->dom = new DOMDocument();
 		$this->dom->preserveWhiteSpace = false;
 		$this->dom->registerNodeClass('DOMElement', 'JSLikeHTMLElement');
@@ -158,11 +160,15 @@ class Readability
 		
 		// Assume successful outcome
 		$this->success = true;
-
 		$bodyElems = $this->dom->getElementsByTagName('body');
+                //echo "init: [[[" . $bodyElems->innerHTML . "]]]\n\n";
 		if ($bodyElems->length > 0) {
 			if ($this->bodyCache == null) {
 				$this->bodyCache = $bodyElems->item(0)->innerHTML;
+                                if (function_exists('mb_convert_encoding')) {
+                                    $this->bodyCache = mb_convert_encoding($this->bodyCache, 'HTML-ENTITIES', "UTF-8");
+                                }
+                                //echo "bodyCache: [[[" . $this->bodyCache . "]]] \n\n\n";
 			}
 			if ($this->body == null) {
 				$this->body = $bodyElems->item(0);
@@ -180,7 +186,7 @@ class Readability
 		$innerDiv       = $this->dom->createElement('div');
 		$articleTitle   = $this->getArticleTitle();
 		$articleContent = $this->grabArticle();
-
+                //echo "after grabArticle(): [". $articleContent->innerHTML ."]\n\n";
 		if (!$articleContent) {
 			$this->success = false;
 			$articleContent = $this->dom->createElement('div');
@@ -206,6 +212,8 @@ class Readability
 		
 		// Set title and content instance variables
 		$this->articleTitle = $articleTitle;
+                
+                //echo "this->articleContent: [". $articleContent->innerHTML ."]\n\n";
 		$this->articleContent = $articleContent;
 		
 		return $this->success;
@@ -513,6 +521,8 @@ class Readability
 	protected function grabArticle($page=null) {
 		$stripUnlikelyCandidates = $this->flagIsActive(self::FLAG_STRIP_UNLIKELYS);
 		if (!$page) $page = $this->dom;
+                
+                //echo "grabArticle 0: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]\n\n";
 		$allElements = $page->getElementsByTagName('*');
 		/**
 		* First, node prepping. Trash nodes that look cruddy (like ones with the class name "comment", etc), and turn divs
@@ -583,6 +593,7 @@ class Readability
 			}
 		}
 		
+                //echo "grabArticle 2: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
 		/**
 		* Loop through all paragraphs, and assign a score to them based on how content-y they look.
 		* Then add their score to their parent node.
@@ -637,7 +648,7 @@ class Readability
 				$grandParentNode->getAttributeNode('readability')->value += $contentScore/2;             
 			}
 		}
-
+                //echo "grabArticle 3: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
 		/**
 		* After we've calculated scores, loop through all of the possible candidate nodes we found
 		* and find the one with the highest score.
@@ -658,7 +669,7 @@ class Readability
 				$topCandidate = $candidates[$c];
 			}
 		}
-
+                //echo "grabArticle 4: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
 		/**
 		* If we still have no top candidate, just use the body as a last resort.
 		* We also have to copy the body node so it is something we can modify.
@@ -681,7 +692,7 @@ class Readability
 			}
 			$this->initializeNode($topCandidate);
 		}
-
+                //echo "grabArticle 5: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
 		/**
 		* Now that we have the top candidate, look through its siblings for content that might also be related.
 		* Things like preambles, content split by ads that we removed, etc.
@@ -694,13 +705,16 @@ class Readability
 			$siblingNodes = new stdClass;
 			$siblingNodes->length = 0;
 		}
-
+                //echo "grabArticle 6: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
+                
+                //echo "grabArticle 6-2: [[[[[[[[[[[[[" . $articleContent->innerHTML . "]]]]]]]]]]]]]]]]]]]]\n";
 		for ($s=0, $sl=$siblingNodes->length; $s < $sl; $s++)
 		{
 			$siblingNode = $siblingNodes->item($s);
 			$append      = false;
 
-			$this->dbg('Looking at sibling node: ' . $siblingNode->nodeName . (($siblingNode->nodeType === XML_ELEMENT_NODE && $siblingNode->hasAttribute('readability')) ? (' with score ' . $siblingNode->getAttribute('readability')) : ''));
+			$this->dbg('Looking at sibling node: ' . $siblingNode->nodeName 
+                                . (($siblingNode->nodeType === XML_ELEMENT_NODE && $siblingNode->hasAttribute('readability')) ? (' with score ' . $siblingNode->getAttribute('readability')) : ''));
 
 			//dbg('Sibling has score ' . ($siblingNode->readability ? siblingNode.readability.contentScore : 'Unknown'));
 
@@ -712,11 +726,14 @@ class Readability
 
 			$contentBonus = 0;
 			/* Give a bonus if sibling nodes and top candidates have the example same classname */
-			if ($siblingNode->nodeType === XML_ELEMENT_NODE && $siblingNode->getAttribute('class') == $topCandidate->getAttribute('class') && $topCandidate->getAttribute('class') != '') {
+			if ($siblingNode->nodeType === XML_ELEMENT_NODE
+                                && $siblingNode->getAttribute('class') == $topCandidate->getAttribute('class') 
+                                && $topCandidate->getAttribute('class') != '') {
 				$contentBonus += ((int)$topCandidate->getAttribute('readability')) * 0.2;
 			}
 
-			if ($siblingNode->nodeType === XML_ELEMENT_NODE && $siblingNode->hasAttribute('readability') && (((int)$siblingNode->getAttribute('readability')) + $contentBonus) >= $siblingScoreThreshold)
+			if ($siblingNode->nodeType === XML_ELEMENT_NODE && $siblingNode->hasAttribute('readability') 
+                                && (((int)$siblingNode->getAttribute('readability')) + $contentBonus) >= $siblingScoreThreshold)
 			{
 				$append = true;
 			}
@@ -768,27 +785,39 @@ class Readability
 				$nodeToAppend->removeAttribute('class');
 
 				/* Append sibling and subtract from our list because it removes the node when you append to another node */
+                                //echo "before appendChild: [" . $nodeToAppend->innerHTML . "]\n\n" ;
 				$articleContent->appendChild($nodeToAppend);
 			}
 		}
-
+                //echo "grabArticle 7: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
+                //echo "grabArticle 7-2: [[[[[[[[[[[[[" . $articleContent->innerHTML . "]]]]]]]]]]]]]]]]]]]]\n";
 		/**
 		* So we have all of the content that we need. Now we clean it up for presentation.
 		**/
 		$this->prepArticle($articleContent);
-
+                //echo "grabArticle 8: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
+                //echo "grabArticle 8-2: [[[[[[[[[[[[[" . $articleContent->innerHTML . "]]]]]]]]]]]]]]]]]]]]\n";
 		/**
 		* Now that we've gone through the full algorithm, check to see if we got any meaningful content.
 		* If we didn't, we may need to re-run grabArticle with different flags set. This gives us a higher
 		* likelihood of finding the content, and the sieve approach gives us a higher likelihood of
 		* finding the -right- content.
 		**/
-		if (strlen($this->getInnerText($articleContent, false)) < 250)
+		//if (strlen($this->getInnerText($articleContent, false)) < 250)
+                //echo mb_strlen($this->getInnerText($articleContent, false));
+                if (mb_strlen($this->getInnerText($articleContent, false)) < 250)
 		{
+                        //echo "grabArticle 9: [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]";
 			// TODO: find out why element disappears sometimes, e.g. for this URL http://www.businessinsider.com/6-hedge-fund-etfs-for-average-investors-2011-7
 			// in the meantime, we check and create an empty element if it's not there.
-			if (!isset($this->body->childNodes)) $this->body = $this->dom->createElement('body');
+			if (!isset($this->body->childNodes)) 
+                            $this->body = $this->dom->createElement('body');
+                        //if (function_exists('mb_convert_encoding')) {
+                        //    $this->bodyCache = mb_convert_encoding($this->bodyCache, 'HTML-ENTITIES', "UTF-8");
+                        //}
 			$this->body->innerHTML = $this->bodyCache;
+                        //echo "strlen : [[[[[[[[[[[[[" . $this->body->innerHTML . "]]]]]]]]]]]]]]]]]]]]\n--------------------------------\n";
+                        //echo "strlen : [[[[[[[[[[[[[" . $this->bodyCache . "]]]]]]]]]]]]]]]]]]]]\n--------------------------------\n";
 			
 			if ($this->flagIsActive(self::FLAG_STRIP_UNLIKELYS)) {
 				$this->removeFlag(self::FLAG_STRIP_UNLIKELYS);
@@ -806,6 +835,8 @@ class Readability
 				return false;
 			}
 		}
+                
+                //echo "return : [" . $articleContent->innerHTML . "]\n\n";
 		return $articleContent;
 	}
 	

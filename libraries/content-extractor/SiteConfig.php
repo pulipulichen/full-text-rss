@@ -18,7 +18,15 @@ class SiteConfig
 	public $title = array();
 	
 	// Use first matching element as body (0 or more xpath expressions)
-	public $body = array();
+        /**
+         * 20140422 Pulipuli Chen
+         * 指定要選取作為Body的位置
+         * @var type 
+         */
+	public $body = array(
+            '//*[@class="postbody"]',
+            '//*[@class="content"]'
+        );
 	
 	// Use first matching element as author (0 or more xpath expressions)
 	public $author = array();

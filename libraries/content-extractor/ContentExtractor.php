@@ -127,6 +127,7 @@ class ContentExtractor
 				$this->config = new SiteConfig();
 			}
 		}
+                //echo count($this->config->body);
 		// store copy of config in our static cache array in case we need to process another URL
 		SiteConfig::add_to_cache($host, $this->config);
 		
@@ -301,6 +302,8 @@ class ContentExtractor
 		foreach ($this->config->body as $pattern) {
 			$elems = @$xpath->query($pattern, $this->readability->dom);
 			// check for matches
+                        //echo "elems->length: [" . $pattern. "]\n\n";
+                        //echo "elems->length: [" . $this->readability->dom->innerHTML. "]\n\n";
 			if ($elems && $elems->length > 0) {
 				$this->debug('Body matched');
 				if ($elems->length == 1) {				
@@ -337,7 +340,9 @@ class ContentExtractor
 					}
 				}
 			}
-		}		
+		}	
+                
+                //echo "auto detect之前： [" . $this->body->innerHTML . "]\n\n";
 		
 		// auto detect?
 		$detect_title = $detect_body = $detect_author = $detect_date = false;
@@ -436,6 +441,8 @@ class ContentExtractor
 							$e = $elems->item(0);
 							if (($e->tagName == 'img') || (trim($e->textContent) != '')) {
 								$this->body = $elems->item(0);
+                                                                //echo "elems->item: [" . $this->body->innerHTML . "]\n\n";
+                                                                
 								// prune (clean up elements that may not be content)
 								if ($this->config->prune) {
 									$this->debug('Pruning content');
@@ -448,6 +455,7 @@ class ContentExtractor
 							unset($e);
 						} else {
 							$this->body = $this->readability->dom->createElement('div');
+                                                        //echo "elems->item: [" . $this->body->innerHTML . "]\n\n";
 							$this->debug($elems->length.' entry-content elems found');
 							foreach ($elems as $elem) {
 								if (!isset($elem->parentNode)) continue;
@@ -470,12 +478,14 @@ class ContentExtractor
 									$this->body->appendChild($elem);
 								}
 							}
+                                                        echo "elems->item: [" . $this->body->innerHTML . "]\n\n";
 							$detect_body = false;
 						}
 					}
 				}
 			}
 		}
+                //echo "elems->item: [" . $this->body->innerHTML . "]\n\n";
 
 		// check for elements marked with instapaper_title
 		if ($detect_title) {
@@ -503,6 +513,7 @@ class ContentExtractor
 				$detect_body = false;
 			}
 		}
+                //echo "after detect_body: [" . $this->body->innerHTML . "]\n\n";
 		
 		// Find author in rel="author" marked element
 		// We only use this if there's exactly one.
@@ -550,9 +561,12 @@ class ContentExtractor
 			$this->debug('Detecting title');
 			$this->title = $this->readability->getTitle()->textContent;
 		}
+                
+                //echo "before detect body success [" . $this->body->innerHTML . "]\n\n";
 		if ($detect_body && $success) {
 			$this->debug('Detecting body');
 			$this->body = $this->readability->getContent();
+                        //echo "getContent() : [" . $this->body->innerHTML . "] \n\n" ;
 			if ($this->body->childNodes->length == 1 && $this->body->firstChild->nodeType === XML_ELEMENT_NODE) {
 				$this->body = $this->body->firstChild;
 			}
@@ -562,6 +576,8 @@ class ContentExtractor
 				$this->readability->prepArticle($this->body);
 			}
 		}
+                
+                //echo "如果沒有Body [" . $this->body->innerHTML . "]\n\n";
 		if (isset($this->body)) {
 			// remove scripts
 			$this->readability->removeScripts($this->body);
@@ -580,6 +596,8 @@ class ContentExtractor
 			}
 			$this->success = true;
 		}
+                
+                //echo "下一頁之前： [" . $this->body->innerHTML . "]\n\n";
                 
                 // 20131011 要實作下一頁的偵測！！！
                 if (isset($this->body)) {

@@ -493,16 +493,21 @@ $items = $feed->get_items(0, $max);
 $urls_sanitized = array();
 $urls = array();
 foreach ($items as $key => $item) {
-	$permalink = htmlspecialchars_decode($item->get_permalink());
-	// Colons in URL path segments get encoded by SimplePie, yet some sites expect them unencoded
-	$permalink = str_replace('%3A', ':', $permalink);
-	// validateUrl() strips non-ascii characters
-	// simplepie already sanitizes URLs so let's not do it again here.
-	//$permalink = $http->validateUrl($permalink);
-	if ($permalink) {
-		$urls_sanitized[] = $permalink;
-	}
-	$urls[$key] = $permalink;
+    $permalink = htmlspecialchars_decode($item->get_permalink());
+    // Colons in URL path segments get encoded by SimplePie, yet some sites expect them unencoded
+    //$permalink = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
+    $permalink = str_replace('%3A', ':', $permalink);
+    //echo $permalink;
+    // validateUrl() strips non-ascii characters
+    // simplepie already sanitizes URLs so let's not do it again here.
+    //$permalink = $http->validateUrl($permalink);
+
+    
+    if ($permalink) {
+        $urls_sanitized[] = $permalink;
+    }
+
+    $urls[$key] = $permalink;
 }
 $http->fetchAll($urls_sanitized);
 //$http->cacheAll();
@@ -515,8 +520,22 @@ foreach ($items as $key => $item) {
 	$extract_result = false;
 	$text_sample = null;
 	$permalink = $urls[$key];
+        
+        /**
+         * 設定偵測用的預設網址
+         * @version 20140422 Pulipuli Chen
+         */
+        //$permalink = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
+        //$permalink = "http://chinese.engadget.com/2014/04/22/snap-phone-attachment-connector-indiegogo/";
+        $permalink = "http://www.linuxeden.com/html/itnews/20140322/149803.html";
+        
 	$newitem = $output->createNewItem();
-	$newitem->setTitle(htmlspecialchars_decode($item->get_title()));
+        $title = htmlspecialchars_decode($item->get_title());
+        if (function_exists('mb_convert_encoding')) {
+            $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
+        }
+	$newitem->setTitle($title);
+        
 	if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
 		if ($permalink !== false) {
 			$newitem->setLink('http://fivefilters.org/content-only/redirect.php?url='.urlencode($permalink));
@@ -533,8 +552,13 @@ foreach ($items as $key => $item) {
 	// TODO: Allow error codes - some sites return correct content with error status
 	// e.g. prospectmagazine.co.uk returns 403
 	//if ($permalink && ($response = $http->get($permalink, true)) && $response['status_code'] < 300) {
+        
+        
+        //echo "1: " . $permalink . "\n\n";
 	if ($permalink && ($response = $http->get($permalink, true)) && ($response['status_code'] < 300 || $response['status_code'] > 400)) {
 		$effective_url = $response['effective_url'];
+                //echo $effective_url;
+                //$effective_url = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
 		if (!url_allowed($effective_url)) continue;
 		// check if action defined for returned Content-Type
 		$type = null;
@@ -565,9 +589,12 @@ foreach ($items as $key => $item) {
 		}
 		if ($do_content_extraction) {
 			$html = $response['body'];
+                        //echo "[" . $html .  "]";
 			// remove strange things
 			$html = str_replace('</[>', '', $html);
 			$html = convert_to_utf8($html, $response['headers']);
+                        //echo "[" . $html .  "]";
+                        
 			if ($auto_extract) {
 				// check site config for single page URL - fetch it if found
 				if ($single_page_response = getSinglePage($item, $html, $effective_url)) {
@@ -581,14 +608,17 @@ foreach ($items as $key => $item) {
 				$extract_result = $extractor->process($html, $effective_url);
 				$readability = $extractor->readability;
 				$content_block = ($extract_result) ? $extractor->getContent() : null;
+                                //echo "content_block: [" . $content_block->innerHTML . "] \n\n";
 				$title = ($extract_result) ? $extractor->getTitle() : '';
 			} else {
 				$readability = new Readability($html, $effective_url);
 				// content block is entire document (for now...)
 				$content_block = $readability->dom;
+                                //echo $content_block->innerHTML;
 				//TODO: get title
 				$title = '';
 			}
+                        //echo "[" . $content_block . "]" ;
 		}
 		// use extracted title for both feed and item title if we're using single-item dummy feed
 		if ($isDummyFeed) {
@@ -604,6 +634,7 @@ foreach ($items as $key => $item) {
 					$extract_result = true;				
 					// get the first matched element
 					$content_block = $elems->item(0);
+                                        //echo "12121";
 					// clean it up
 					$readability->removeScripts($content_block);
 					$readability->prepArticle($content_block);
@@ -623,28 +654,36 @@ foreach ($items as $key => $item) {
 			}
 			// keep the original item description
 			$html .= $item->get_description();
+                        //echo "[" . $html . "]";
 		} else {
 			$readability->clean($content_block, 'select');
 			if ($options->rewrite_relative_urls) makeAbsolute($effective_url, $content_block);
 			// footnotes
 			if (($links == 'footnotes') && (strpos($effective_url, 'wikipedia.org') === false)) {
-				$readability->addFootnotes($content_block);
+				//$readability->addFootnotes($content_block);
 			}
 			if ($extract_pattern) {
 				// get outerHTML
 				$html = $content_block->ownerDocument->saveXML($content_block);
+                                echo "extract_pattern: [" . $html . "]" ;
 			} else {
+                                //echo "content_block: [" . $html . "]";
 				if ($content_block->childNodes->length == 1 && $content_block->firstChild->nodeType === XML_ELEMENT_NODE) {
 					$html = $content_block->firstChild->innerHTML;
 				} else {
 					$html = $content_block->innerHTML;
+                                        //echo "content_block: [" . $html . "]";
 				}
+                                //echo "content_block: [" . $html . "]";
 			}
+                        //echo "[".$html."]";
 			// post-processing cleanup
 			$html = preg_replace('!<p>[\s\h\v]*</p>!u', '', $html);
 			if ($links == 'remove') {
 				$html = preg_replace('!</?a[^>]*>!', '', $html);
 			}
+                        //echo "[". $html ."]";
+                        
 			// get text sample for language detection
 			$text_sample = strip_tags(substr($html, 0, 500));
 			if (!$valid_key) {
@@ -941,8 +980,11 @@ function makeAbsoluteStr($base, $url) {
 // returns single page response, or false if not found
 function getSinglePage($item, $html, $url) {
 	global $http, $extractor;
+        //$url = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
+        //echo "getSinglePage: " . $url . "\n";
 	$host = @parse_url($url, PHP_URL_HOST);
 	$site_config = SiteConfig::build($host);
+        
 	if ($site_config === false) {
 		// check for fingerprints
 		if (!empty($extractor->fingerprints) && ($_fphost = $extractor->findHostUsingFingerprints($html))) {
@@ -963,6 +1005,7 @@ function getSinglePage($item, $html, $url) {
 		// so let's replace HTML with feed item description
 		$html = $item->get_description();
 	}
+        
 	if (isset($splink)) {
 		// Build DOM tree from HTML
 		$readability = new Readability($html, $url);
@@ -986,6 +1029,7 @@ function getSinglePage($item, $html, $url) {
 				}
 			}
 		}
+                
 		// If we've got URL, resolve against $url
 		if (isset($single_page_url) && ($single_page_url = makeAbsoluteStr($url, $single_page_url))) {
 			// check it's not what we have already!
