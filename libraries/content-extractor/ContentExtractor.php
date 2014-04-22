@@ -603,23 +603,38 @@ class ContentExtractor
                 if (isset($this->body)) {
                     //$elems = @$xpath->query("//a[starts-with(@href, /?p=) and &page=2']", $this->readability->dom);
                     $next_page_pattern = $this->options->next_page_pattern;
+                    //echo $next_page_pattern;
                     //$next_page_pattern = "//a[contains(@href, '&page=')]";
+                    //$next_page_pattern = "//a";
                     $elems = @$xpath->query($next_page_pattern, $this->readability->dom);
+                    
+                    ////echo $elems->length;
                     //$link = @$xpath->query("//a[contains(@href, '&page=')]/@href", $this->readability->dom);
                     //if ($link, $) {
                     if ($elems && $elems->length > 0) {
                         
                         //$elem = $this->readability->dom->createElement('div', $elems->item(0)->getAttribute("href"));
                         $elem = $this->readability->dom->createElement('div', "aaa");
+                        
+                        
                         $attributes = $elems->item($elems->legnth)->attributes; 
                         $href = $attributes->getNamedItem("href")->value;
-                        $url_component = parse_url($url);
-                        //$href = urlencode($href);
-                        //$elem = $this->readability->dom->createElement('div', $href);
                         
-                        //$this->body = $elem;
+                        if (substr($href, 0, 4) !== "http") {
+                            //echo $href;
+                            $url_component = parse_url($url);
+                            //$href = urlencode($href);
+                            //$elem = $this->readability->dom->createElement('div', $href);
+
+                            //$this->body = $elem;
+
+                            $permalink = $url_component["scheme"]."://".$url_component["host"].$href;
+                        }
+                        else {
+                            $permalink = $href;
+                        }
                         
-                        $permalink = $url_component["scheme"]."://".$url_component["host"].$href;
+                        //echo $permalink;
                         //echo "[[[[".$permalink."]]]]";
                         //$permalink = "http://blog.soft.idv.tw/?p=1606&page=2";
                         
@@ -630,14 +645,19 @@ class ContentExtractor
                         $extractor->fingerprints = $this->fingerprints;
                         
                         $http = new HumbleHttpAgent();
-                        if ($permalink && ($response = $http->get($permalink, true)) && ($response['status_code'] < 300 || $response['status_code'] > 400)) {
+                        $response = $http->get($permalink, true);
+                        //echo 'status_code: '. $response['status_code'] . "\n\n";
+                        if ($permalink && ($response = $http->get($permalink, true)) 
+                                && ($response['status_code'] < 300 || $response['status_code'] > 400)) {
                             $html = $response['body'];
+                            //echo "html: " .$html;
                             // remove strange things
                             $html = str_replace('</[>', '', $html);
                             $html = convert_to_utf8($html, $response['headers']);
                             $extract_result = $extractor->process($html, $permalink);
                             //$readability = $extractor->readability;
                             $content_block = ($extract_result) ? $extractor->getContent() : null;
+                            //echo "content_block->innerHTML: ". $content_block->innerHTML . "\n\n";
                             //$this->body->appendChild($elem);
                             
                         }

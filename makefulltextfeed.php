@@ -527,7 +527,9 @@ foreach ($items as $key => $item) {
          */
         //$permalink = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
         //$permalink = "http://chinese.engadget.com/2014/04/22/snap-phone-attachment-connector-indiegogo/";
-        $permalink = "http://www.linuxeden.com/html/itnews/20140322/149803.html";
+        //$permalink = "http://www.linuxeden.com/html/itnews/20140322/149803.html";
+        //$permalink = "http://walker-a.com/archives/2296";
+        //$permalink = "http://www.linuxeden.com/html/news/20140125/147867.html";
         
 	$newitem = $output->createNewItem();
         $title = htmlspecialchars_decode($item->get_title());

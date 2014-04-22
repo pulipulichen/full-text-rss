@@ -330,6 +330,13 @@ $next_page_pattern = array(
     "contains(@id, 'next')",
     "contains(text(), 'Next')",
     "contains(text(), 'next')",
+    "text()='2'",
+    //"text()='3'",
+    //"text()='4'",
+    //"text()='5'",
+    //"text()='6'",
+    //"text()='7'",
+    //"text()='8'",
 );
 
 $options->next_page_pattern = "//a[".join(" or ", $next_page_pattern)."]";
