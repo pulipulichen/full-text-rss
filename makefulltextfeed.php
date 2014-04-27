@@ -531,6 +531,11 @@ foreach ($items as $key => $item) {
         //$permalink = "http://walker-a.com/archives/2296";
         //$permalink = "http://www.linuxeden.com/html/news/20140125/147867.html";
         
+        
+        if (isset($custom_permalink)) {
+            $permalink = $custom_permalink;
+        }
+        
 	$newitem = $output->createNewItem();
         $title = htmlspecialchars_decode($item->get_title());
         if (function_exists('mb_convert_encoding')) {

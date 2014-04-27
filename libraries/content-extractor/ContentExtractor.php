@@ -48,6 +48,9 @@ class ContentExtractor
         private $path;
         private $fallback;
         
+        public $next_page_deep_count = 0;
+        public $next_pages = array();
+        
         /**
          * 設定檔的參數
          * @var Array
@@ -299,46 +302,32 @@ class ContentExtractor
 		}
 		
 		// try to get body
+                
 		foreach ($this->config->body as $pattern) {
 			$elems = @$xpath->query($pattern, $this->readability->dom);
 			// check for matches
                         //echo "elems->length: [" . $pattern. "]\n\n";
                         //echo "elems->length: [" . $this->readability->dom->innerHTML. "]\n\n";
 			if ($elems && $elems->length > 0) {
-				$this->debug('Body matched');
-				if ($elems->length == 1) {				
-					$this->body = $elems->item(0);
-					// prune (clean up elements that may not be content)
-					if ($this->config->prune) {
-						$this->debug('Pruning content');
-						$this->readability->prepArticle($this->body);
-					}
-					break;
-				} else {
-					$this->body = $this->readability->dom->createElement('div');
-					$this->debug($elems->length.' body elems found');
-					foreach ($elems as $elem) {
-						if (!isset($elem->parentNode)) continue;
-						$isDescendant = false;
-						foreach ($this->body->childNodes as $parent) {
-							if ($this->isDescendant($parent, $elem)) {
-								$isDescendant = true;
-								break;
-							}
-						}
-						if ($isDescendant) {
-							$this->debug('Element is child of another body element, skipping.');
-						} else {
-							// prune (clean up elements that may not be content)
-							if ($this->config->prune) {
-								$this->debug('Pruning content');
-								$this->readability->prepArticle($elem);
-							}
-							$this->debug('Element added to body');
-							$this->body->appendChild($elem);
-						}
-					}
-				}
+                            
+                            //echo "elems->length matched: [" . $pattern. "]\n\n";
+                            
+                            
+                            //print_r($next_page_pattern);
+                            
+			    $this->body = $this->getMatchedBody($elems);
+                            
+                            $next_page_content = $this->retrieveNextPage($xpath, $url);
+                            //if ($next_page_content !== FALSE) {
+                            //    $body->appendChild($next_page_content);
+                                //$next_page_content = $this->retrieveNextPage($xpath, $body, $url);
+                            //}
+                           
+                            //$this->body = $body;
+                            
+                            if ($elems->length === 1) {	
+                                break;
+                            }
 			}
 		}	
                 
@@ -613,7 +602,8 @@ class ContentExtractor
                     //if ($link, $) {
                     if ($elems && $elems->length > 0) {
                         
-                        //$elem = $this->readability->dom->createElement('div', $elems->item(0)->getAttribute("href"));
+                        $elem = $this->readability->dom->createElement('div', $elems->item(0)->getAttribute("href"));
+                        
                         $elem = $this->readability->dom->createElement('div', "aaa");
                         
                         
@@ -633,10 +623,12 @@ class ContentExtractor
                         else {
                             $permalink = $href;
                         }
+                        //$permalink = $this->getNextPagePermalink($elems);
                         
                         //echo $permalink;
                         //echo "[[[[".$permalink."]]]]";
                         //$permalink = "http://blog.soft.idv.tw/?p=1606&page=2";
+                        
                         
                         $extractor = new ContentExtractor(dirname(__FILE__).'/site_config/custom', dirname(__FILE__).'/site_config/standard');
                         $extractor->fingerprints = $options->fingerprints;
@@ -726,5 +718,159 @@ class ContentExtractor
 	public function getSiteConfig() {
 		return $this->config;
 	}
+        
+        public function getMatchedBody($elems) {
+            $this->debug('Body matched');
+            $body;
+            if ($elems->length == 1) {				
+                    $body = $elems->item(0);
+                    // prune (clean up elements that may not be content)
+                    if ($this->config->prune) {
+                            $this->debug('Pruning content');
+
+                            /**
+                             * @version 20140428 Pudding Chen
+                             * 禁止重新整理
+                             */
+                            //$this->readability->prepArticle($this->body);
+                    }
+                    //break;
+            } else {
+                    $body = $this->readability->dom->createElement('div');
+                    $this->debug($elems->length.' body elems found');
+                    foreach ($elems as $elem) {
+                            if (!isset($elem->parentNode)) continue;
+                            $isDescendant = false;
+                            foreach ($body->childNodes as $parent) {
+                                    if ($this->isDescendant($parent, $elem)) {
+                                            $isDescendant = true;
+                                            break;
+                                    }
+                            }
+                            if ($isDescendant) {
+                                    $this->debug('Element is child of another body element, skipping.');
+                            } else {
+                                    // prune (clean up elements that may not be content)
+                                    if ($this->config->prune) {
+                                            $this->debug('Pruning content');
+                                            /**
+                                             * @version 20140428 Pudding Chen
+                                             * 禁止重新整理
+                                             */
+                                            //$this->readability->prepArticle($elem);
+                                    }
+                                    $this->debug('Element added to body');
+                                    $body->appendChild($elem);
+                            }
+                    }
+            }
+            
+            return $body;
+        }
+        
+        public function retrieveNextPage($xpath, $url) {
+            //$xpath = new DOMXPath($body);
+            $next_page_pattern = $this->options->next_page_pattern;
+            $next_page_elems = $xpath->query($next_page_pattern, $this->body);
+            
+            $content = FALSE;
+            if ($next_page_elems && $next_page_elems->length > 0) {
+                
+                $permalink = $this->getNextPagePermalink($next_page_elems, $url);
+                                
+                $content = $this->readability->dom->createElement('div', "未完待續");
+                $content = $this->extractContentBlock($permalink);
+                if ($content !== FALSE) {
+                    $this->body->appendChild($content);
+                }
+                //echo $content->innerHTML;
+            }
+            return $content;
+        }
+        
+        public function getNextPagePermalink($elems, $url) {
+             //$elem = $this->readability->dom->createElement('div', $elems->item(0)->getAttribute("href"));
+
+            $attributes = $elems->item($elems->legnth)->attributes; 
+            $href = $attributes->getNamedItem("href")->value;
+
+            if (substr($href, 0, 4) !== "http") {
+                //echo $href;
+                $url_component = parse_url($url);
+                //$href = urlencode($href);
+                //$elem = $this->readability->dom->createElement('div', $href);
+
+                //$this->body = $elem;
+
+                $permalink = $url_component["scheme"]."://".$url_component["host"].$href;
+            }
+            else {
+                $permalink = $href;
+            }
+            
+            return $permalink;
+        }
+        
+        public function extractContentBlock($permalink) {
+                        $extractor = new ContentExtractor(dirname(__FILE__).'/site_config/custom', dirname(__FILE__).'/site_config/standard');
+                        //$extractor = $this;
+                        
+                        $extractor->next_page_deep_count = $this->next_page_deep_count + 1;
+                        $extractor->next_pages = $this->next_pages;
+                        if (in_array($permalink, $extractor->next_pages)) {
+                            return FALSE;
+                        }
+                        $extractor->next_pages[] = $permalink;
+                        
+                        if ($extractor->next_page_deep_count > 3) {
+                            return FALSE;
+                        }
+            
+                        $extractor->fingerprints = $this->options->fingerprints;
+                        
+                        $elem = new ContentExtractor($this->path, $this->fallback);
+                        $extractor->fingerprints = $this->fingerprints;
+                        
+                        $http = new HumbleHttpAgent();
+                        $response = $http->get($permalink, true);
+            
+                        //echo 'status_code: '. $response['status_code'] . "\n\n";
+                        
+                        if ($permalink && ($response = $http->get($permalink, true)) 
+                                && ($response['status_code'] < 300 || $response['status_code'] > 400)) {
+                            $html = $response['body'];
+                            //echo "html: " .$html;
+                            // remove strange things
+                            $html = str_replace('</[>', '', $html);
+                            $html = convert_to_utf8($html, $response['headers']);
+                            
+                            if (function_exists('mb_convert_encoding')) {
+                                $html = mb_convert_encoding($html, 'HTML-ENTITIES', "UTF-8");
+                            }
+                            
+                            $extract_result = $extractor->process($html, $permalink);
+                            //$readability = $extractor->readability; 
+                            
+                            $content_block = ($extract_result) ? $extractor->getContent() : null;
+                            
+                            //echo "content_block->innerHTML: ". $content_block->innerHTML . "\n\n";
+                            //$this->body->appendChild($elem);
+                        }
+                        
+            $doc = new DOMDocument();
+                        if (@$doc->loadHTML($content_block->innerHTML)) {
+                            $doc->saveHTML();
+                            //$content = $this->readability->dom->loadHTML($content_block->innerHTML);
+                            $content = $this->readability->dom->createElement('div', $content_block->innerHTML);
+                            $content = $this->readability->dom->importNode($content_block, true);
+                            
+                            return $content;
+                        }
+                        else {
+                            return FALSE;
+                        }
+            return FALSE;
+            //return $content_block;
+        }
 }
 ?>

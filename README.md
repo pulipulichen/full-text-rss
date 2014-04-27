@@ -99,3 +99,9 @@ Although we don't have examples in other programming languages, the essential st
 2. Fetch the resulting URL using an HTTP GET request.
 
 3. Parse the HTTP response body as JSON and grab what you need.
+
+### MEMO
+
+設定偵測用的預設網址：/config.php
+設定下一頁：/config.php
+設定選擇範圍：/libraries/content-extractor/SiteConfig.php

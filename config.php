@@ -331,6 +331,7 @@ $next_page_pattern = array(
     "contains(text(), 'Next')",
     "contains(text(), 'next')",
     "text()='2'",
+    "contains(text(), '下一頁')"
     //"text()='3'",
     //"text()='4'",
     //"text()='5'",
@@ -340,6 +341,13 @@ $next_page_pattern = array(
 );
 
 $options->next_page_pattern = "//a[".join(" or ", $next_page_pattern)."]";
+
+/**
+ * 設定偵測用的預設網址
+ * @version 20140422 Pulipuli Chen
+ */
+//$custom_permalink = "http://www.netadmin.com.tw/article_content.aspx?sn=1404100003";
+
 
 // 特殊轉換的網站
 $options->convert_encoding = array(

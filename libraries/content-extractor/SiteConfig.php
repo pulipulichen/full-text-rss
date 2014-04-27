@@ -25,7 +25,8 @@ class SiteConfig
          */
 	public $body = array(
             '//*[@class="postbody"]',
-            '//*[@class="content"]'
+            '//*[@class="content"]',
+            '//div[@id="content-text"]'
         );
 	
 	// Use first matching element as author (0 or more xpath expressions)
