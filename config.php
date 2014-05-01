@@ -30,7 +30,7 @@ $options->default_url = "";
 // ----------------------
 // The number of feed items to process when no API key is supplied
 // and no &max=x value is supplied in the querystring.
-$options->default_entries = 50;
+$options->default_entries = 10;
 
 // Max entries (without access key)
 // ----------------------
@@ -347,6 +347,7 @@ $options->next_page_pattern = "//a[".join(" or ", $next_page_pattern)."]";
  * @version 20140422 Pulipuli Chen
  */
 //$custom_permalink = "http://www.netadmin.com.tw/article_content.aspx?sn=1404100003";
+//$custom_permalink = "http://www.linuxeden.com/html/news/20140425/151126.html";
 
 
 // 特殊轉換的網站

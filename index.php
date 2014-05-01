@@ -66,7 +66,9 @@ if (!defined('_FF_FTR_INDEX')) {
 		<legend>Create full-text feed from feed or webpage URL<br />由RSS或URL網址建立全文的資訊來源</legend>
 		<div class="control-group">
 			<label class="control-label" for="url">Enter URL / 請輸入網址</label>
-			<div class="controls"><input type="text" id="url" name="url" style="width: 450px;" title="URL" value="<?php echo $options->default_url ?>" data-content="Typically this is a URL for a partial feed which we transform into a full-text feed. But it can also be a standard web page URL, in which case we'll extract its content and return it in a 1-item feed." /></div>
+			<div class="controls"><input type="text" id="url" name="url" style="width: 450px;" title="URL" value="<?php echo $options->default_url ?>" 
+                                                     data-content="Typically this is a URL for a partial feed which we transform into a full-text feed. But it can also be a standard web page URL, in which case we'll extract its content and return it in a 1-item feed. 請輸入RSS資料來源(feed)的網址，以讓本網站轉換為全文。這網址也可以是一個標準網頁的網址，本網站會抽取網頁的內文，並轉換成只有1篇文章的資料來源。" />
+                        </div>
                         <div style="text-align:center;">
                             This URL always got extration failed? <a href="https://github.com/pulipulichen/full-text-rss/issues/new" target="issue">Please report this URL to issue.</a> <br />
                             一直抽取失敗嗎？請到<a href="https://github.com/pulipulichen/full-text-rss/issues/new" target="issue">回報發生的RSS feed資訊來源網址</a>（需要註冊，免費）</div>

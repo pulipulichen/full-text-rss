@@ -466,7 +466,13 @@ if ($html_only || !$result) {
 // Create full-text feed
 ////////////////////////////////////////////
 $output = new FeedWriter();
-$output->setTitle($feed->get_title());
+
+$feed_title = $feed->get_title();
+if (function_exists('mb_convert_encoding')) {
+    $feed_title = mb_convert_encoding($feed_title, 'HTML-ENTITIES', "UTF-8");
+}
+
+$output->setTitle($feed_title);
 $output->setDescription($feed->get_description());
 $output->setXsl('css/feed.xsl'); // Chrome uses this, most browsers ignore it
 if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
@@ -531,7 +537,10 @@ foreach ($items as $key => $item) {
         //$permalink = "http://walker-a.com/archives/2296";
         //$permalink = "http://www.linuxeden.com/html/news/20140125/147867.html";
         
-        
+        /**
+         * 如果有自定義的網址，則轉換為該網址
+         * @author Pulipuli Chen 20140501
+         */
         if (isset($custom_permalink)) {
             $permalink = $custom_permalink;
         }
