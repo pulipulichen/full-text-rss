@@ -468,9 +468,9 @@ if ($html_only || !$result) {
 $output = new FeedWriter();
 
 $feed_title = $feed->get_title();
-if (function_exists('mb_convert_encoding')) {
-    $feed_title = mb_convert_encoding($feed_title, 'HTML-ENTITIES', "UTF-8");
-}
+//if (function_exists('mb_convert_encoding')) {
+//    $feed_title = mb_convert_encoding($feed_title, 'HTML-ENTITIES', "UTF-8");
+//}
 
 $output->setTitle($feed_title);
 $output->setDescription($feed->get_description());

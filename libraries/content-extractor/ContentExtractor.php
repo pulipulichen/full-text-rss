@@ -312,7 +312,6 @@ class ContentExtractor
                             
                             //echo "elems->length matched: [" . $pattern. "]\n\n";
                             
-                            
                             //print_r($next_page_pattern);
                             
 			    $this->body = $this->getMatchedBody($elems);

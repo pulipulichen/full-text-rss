@@ -24,9 +24,10 @@ class SiteConfig
          * @var type 
          */
 	public $body = array(
-            '//*[@class="postbody"]',
-            '//*[@class="content"]',
-            '//div[@id="content-text"]'
+            //'//*[@class="postbody"]',
+            //'//*[@class="content"]',
+            //'//div[@id="content-text"]',
+            //'//*[@class="entry-content"]'
         );
 	
 	// Use first matching element as author (0 or more xpath expressions)
@@ -116,11 +117,17 @@ class SiteConfig
 	// returns SiteConfig instance if an appropriate one is found, false otherwise
 	public static function build($host) {
 		$host = strtolower($host);
+                
+                //print_r(array("buikl", $host));
+                
 		if (substr($host, 0, 4) == 'www.') $host = substr($host, 4);
 		if (!$host || (strlen($host) > 200) || !preg_match(self::HOSTNAME_REGEX, $host)) return false;
 		// check for site configuration
 		$try = array($host);
 		$split = explode('.', $host);
+                
+                //print_r(array("buikl 1", $host));
+                
 		if (count($split) > 1) {
 			array_shift($split);
 			$try[] = '.'.implode('.', $split);
@@ -135,10 +142,14 @@ class SiteConfig
 				break;
 			}
 		}
+                
+                //print_r(array("buikl 2", $host));
+                
 		if (!isset($file)) {
 			if (isset(self::$config_path_fallback)) {
 				self::debug("... trying fallback ($host)");
 				foreach ($try as $h) {
+                                        //echo self::$config_path_fallback."/$h.txt";
 					if (file_exists(self::$config_path_fallback."/$h.txt")) {
 						self::debug("... from fallback file ($h)");
 						$file = self::$config_path_fallback."/$h.txt";
@@ -147,16 +158,21 @@ class SiteConfig
 				}
 				if (!isset($file)) {
 					self::debug("... no match in fallback directory");
+                                        //echo "bulid 2-1";
 					return false;
 				}
 			} else {
+                                //echo "bulid 2-2";
 				self::debug("... no match ($host)");
 				return false;
 			}
 		}
 		$config_file = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		if (!$config_file || !is_array($config_file)) return false;
-		$config = new SiteConfig();
+		
+                //print_r(array("buikl 3", $host));
+                
+                $config = new SiteConfig();
 		foreach ($config_file as $line) {
 			$line = trim($line);
 			
@@ -187,6 +203,9 @@ class SiteConfig
 				}
 			}
 		}
+                
+                //print_r(array("buikl end", $host));
+                
 		return $config;
 	}
 }
