@@ -471,7 +471,7 @@ $feed_title = $feed->get_title();
 //if (function_exists('mb_convert_encoding')) {
 //    $feed_title = mb_convert_encoding($feed_title, 'HTML-ENTITIES', "UTF-8");
 //}
-
+/*
 $ori_feed_title = $feed_title;
 //if (strpos($url, "www.linuxeden.com") !== FALSE) {
 if (key_exists($url, $options->convert_encoding)) {
@@ -490,7 +490,7 @@ if (key_exists($url, $options->convert_encoding)) {
 if (is_null($feed_title) || $feed_title === "") {
     $feed_title = $ori_feed_title;
 }
-
+*/
 $output->setTitle($feed_title);
 $output->setDescription($feed->get_description());
 $output->setXsl('css/feed.xsl'); // Chrome uses this, most browsers ignore it
@@ -569,11 +569,15 @@ foreach ($items as $key => $item) {
         $origin_title = $title;
         
         if (function_exists('mb_convert_encoding')) {
+            /*
             if (key_exists($url, $options->convert_encoding)) {
                 try {
-                    //$title = mb_convert_encoding($title, $options->convert_encoding[$url], "UTF-8");
+                    
                     $encoding = $options->convert_encoding[$url];
-                    $title = iconv($encoding, "UTF-8//IGNORE", $title);
+                    //$title = iconv($encoding, "UTF-8//IGNORE", $title);
+                    $title = mb_convert_encoding($title, $encoding, "UTF-8//IGNORE");
+                    //$title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
+                    $title = $encoding.$title;
                 }
                 catch (Exception $e) {
                     $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
@@ -582,7 +586,11 @@ foreach ($items as $key => $item) {
             else {
                 $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
             }
+            */
+            $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
         }
+        
+        
         
         if (is_null($title) || $title === "") {
             $title = $origin_title;
