@@ -472,6 +472,25 @@ $feed_title = $feed->get_title();
 //    $feed_title = mb_convert_encoding($feed_title, 'HTML-ENTITIES', "UTF-8");
 //}
 
+$ori_feed_title = $feed_title;
+//if (strpos($url, "www.linuxeden.com") !== FALSE) {
+if (key_exists($url, $options->convert_encoding)) {
+    //if (function_exists('iconv')) {
+        //$feed_title = iconv("gb2312", "UTF-8//IGNORE", $feed_title);
+        //$feed_title = mb_convert_encoding($feed_title, 'HTML-ENTITIES', "gb2312");
+    //}
+    //$feed_title = mb_convert_encoding($feed_title, 'HTML-ENTITIES', "UTF-8");
+    //$feed_title = iconv("gb2312", "UTF-8//IGNORE", $feed_title);
+    
+    if (function_exists('mb_convert_encoding')) {
+        $feed_title = mb_convert_encoding($feed_title, $options->convert_encoding[$url], "UTF-8");
+    }
+}
+
+if (is_null($feed_title) || $feed_title === "") {
+    $feed_title = $ori_feed_title;
+}
+
 $output->setTitle($feed_title);
 $output->setDescription($feed->get_description());
 $output->setXsl('css/feed.xsl'); // Chrome uses this, most browsers ignore it
@@ -547,9 +566,29 @@ foreach ($items as $key => $item) {
         
 	$newitem = $output->createNewItem();
         $title = htmlspecialchars_decode($item->get_title());
+        $origin_title = $title;
+        
         if (function_exists('mb_convert_encoding')) {
-            $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
+            if (key_exists($url, $options->convert_encoding)) {
+                try {
+                    //$title = mb_convert_encoding($title, $options->convert_encoding[$url], "UTF-8");
+                    $encoding = $options->convert_encoding[$url];
+                    $title = iconv($encoding, "UTF-8//IGNORE", $title);
+                }
+                catch (Exception $e) {
+                    $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
+                }
+            }
+            else {
+                $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
+            }
         }
+        
+        if (is_null($title) || $title === "") {
+            $title = $origin_title;
+        }
+        
+        
 	$newitem->setTitle($title);
         
 	if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment

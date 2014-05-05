@@ -349,7 +349,7 @@ $options->next_page_pattern = "//a[".join(" or ", $next_page_pattern)."]";
 //$custom_permalink = "http://www.netadmin.com.tw/article_content.aspx?sn=1404100003";
 //$custom_permalink = "http://www.linuxeden.com/html/news/20140425/151126.html";
 //$custom_permalink = "http://feeds.freegroup.org/~r/freegroup/~3/J5AhKCaKK2E/";
-
+$custom_permalink = "http://www.linuxeden.com/html/itnews/20140504/151385.html";
 
 // 特殊轉換的網站
 $options->convert_encoding = array(
