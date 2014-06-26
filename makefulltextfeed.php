@@ -116,6 +116,8 @@ if (strtolower(substr($url, 0, 7)) == 'feed://') {
 if (!preg_match('!^https?://.+!i', $url)) {
 	$url = 'http://'.$url;
 }
+$url = str_replace("%40", "@", $url);
+//echo $url;
 
 $url = filter_var($url, FILTER_SANITIZE_URL);
 $test = filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED);
@@ -408,6 +410,7 @@ if (!$html_only) {
 	$feed->force_feed(true);
 	$feed->set_file_class('SimplePie_HumbleHttpAgent');
 	//$feed->set_feed_url($url); // colons appearing in the URL's path get encoded
+        //echo $url."||";
 	$feed->feed_url = $url;
 	$feed->set_autodiscovery_level(SIMPLEPIE_LOCATOR_NONE);
 	$feed->set_timeout(20);
@@ -518,10 +521,25 @@ $items = $feed->get_items(0, $max);
 $urls_sanitized = array();
 $urls = array();
 foreach ($items as $key => $item) {
-    $permalink = htmlspecialchars_decode($item->get_permalink());
+    $permalink = $item->get_permalink();
+    //echo "{".$permalink."}";
+    $permalink = htmlspecialchars_decode($permalink);
+    
     // Colons in URL path segments get encoded by SimplePie, yet some sites expect them unencoded
     //$permalink = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
     $permalink = str_replace('%3A', ':', $permalink);
+    
+    /**
+     * @version 20140626 布丁
+     * 針對incognitomail特殊的設置
+     */
+    if (strpos($permalink, "http://www.incognitomail.com/?m=") === 0) {
+        $a = substr($url, strpos($url, "&a=")+3);
+        //echo $a;
+        $permalink = $permalink . $a;
+    }
+    
+    
     //echo $permalink;
     // validateUrl() strips non-ascii characters
     // simplepie already sanitizes URLs so let's not do it again here.
@@ -545,6 +563,7 @@ foreach ($items as $key => $item) {
 	$extract_result = false;
 	$text_sample = null;
 	$permalink = $urls[$key];
+        //print_r($urls);
         
         /**
          * 設定偵測用的預設網址
@@ -563,6 +582,8 @@ foreach ($items as $key => $item) {
         if (isset($custom_permalink)) {
             $permalink = $custom_permalink;
         }
+        
+        //echo "[".$permalink."]";
         
 	$newitem = $output->createNewItem();
         $title = htmlspecialchars_decode($item->get_title());

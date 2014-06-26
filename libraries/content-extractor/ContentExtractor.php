@@ -600,8 +600,12 @@ class ContentExtractor
                     //$link = @$xpath->query("//a[contains(@href, '&page=')]/@href", $this->readability->dom);
                     //if ($link, $) {
                     if ($elems && $elems->length > 0) {
-                        
-                        $elem = $this->readability->dom->createElement('div', $elems->item(0)->getAttribute("href"));
+                        try {
+                            @$elem = $this->readability->dom->createElement('div', $elems->item(0)->getAttribute("href"));
+                        }
+                        catch (Exception $e) {
+                            
+                        } 
                         
                         $elem = $this->readability->dom->createElement('div', "aaa");
                         

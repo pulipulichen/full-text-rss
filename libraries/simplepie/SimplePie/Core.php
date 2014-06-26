@@ -2348,6 +2348,7 @@ class SimplePie_Core
 
 	public function get_links($rel = 'alternate')
 	{
+            //print_r($this->data);
 		if (!isset($this->data['links']))
 		{
 			$this->data['links'] = array();
