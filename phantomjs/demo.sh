@@ -1,1 +1,1 @@
-./phantomjs phantomjs-exec.js "http://blog.pulipuli.info/2017/03/apache-tika-using-apache-tika-extract.html" "div.entry-container"
+/tmp/phantomjs/phantomjs.sh "http://blog.pulipuli.info/2017/03/apache-tika-using-apache-tika-extract.html" "div.entry-container"

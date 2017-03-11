@@ -1,9 +1,8 @@
-// ./phantomjs phantomjs-exec.js "https://gnn.gamer.com.tw/3/144513.html" "div.GN-lbox3B"
+// ./phantomjs phantomjs-exec.js "http://blog.pulipuli.info/2017/03/apache-tika-using-apache-tika-extract.html" "div.entry-container"
 
 var config = {};
 config.enable_cache = true;
-//console.log("00000");
-//phantom.exit();
+
 // --------------------------------
 
 var webpage = require('webpage').create();
@@ -15,9 +14,7 @@ system = require('system');
 
 config.cache_dir = fs.workingDirectory + "/phantomjs_cache/";
 config.output = config.cache_dir + "/phantomjs_output.html";
-
-config.url;	// = 'https://gnn.gamer.com.tw/3/144513.html';
-//global selector;
+config.url;
 
 // --------------------------------
 
@@ -32,32 +29,20 @@ var _get_url = function (_callback) {
 	if (typeof(system.args[2]) === 'string') {
 		config.selector = system.args[2];
 	}
-	
-	//JSON.toString(system.args);
-	//phantom.exit();
 };
 
 // --------------------------------
 
 var _mkdir_cache = function (config, _callback) {
-	/*
-	if (config.enable_cache === false) {
-		return _callback();
-	}
-	*/
-
+	
 	if(fs.isDirectory(config.cache_dir) === false) {
 		execFile("mkdir", ["-p", "/tmp/phantomjs_cache/"], null, function () {
-			//console.log("ok1");
-			//phantom.exit();
 			execFile("chmod", ["777", "/tmp/phantomjs_cache/"], null, function () {
 				_callback();
 			});
 		});
 	}
 	else {
-		//console.log("ok2");
-		//phantom.exit();
 		_callback();
 	}
 
@@ -93,12 +78,10 @@ var _open_webpage = function (config, _callback) {
 	
 	var onPageReady = function() {
 		if (config.selector !== undefined) {
-			//console.log(1);
 			var htmlContent = eval('webpage.evaluate(function () {'
 				+ '	htmlContent = $(document).find("' + config.selector + '").html();'
 				+ '	return htmlContent;'
 			+ '})');
-			//console.log(htmlContent);
 		}
 		else {
 			var htmlContent = webpage.evaluate(function () {
@@ -113,7 +96,6 @@ var _open_webpage = function (config, _callback) {
 		webpage.injectJs('jquery.js');
 		function checkReadyState() {
 			setTimeout(function () {
-				//console.log("0");
 				var readyState = webpage.evaluate(function () {
 					return document.readyState;
 				});
@@ -135,7 +117,6 @@ var _finish = function (config, htmlContent, _callback) {
 	var content = htmlContent;
 	console.log(content);
 	
-	//fs.remove(config.output);
 	fs.write(config.output, content, 'w');
 			
 	if (config.enable_cache === false) {
@@ -143,7 +124,6 @@ var _finish = function (config, htmlContent, _callback) {
 	}
 	
 	var path = _cache_filepath(config);
-	//var content = ;
 	fs.write(path, content, 'w');
 	
 	return _callback();
@@ -152,11 +132,8 @@ var _finish = function (config, htmlContent, _callback) {
 // ----------------------------
 
 _get_url();
-//console.log("c");
 _mkdir_cache(config, function () {
-	//console.log("a");
 	_read_cache(config, function () {
-		//console.log("b");
 		_open_webpage(config, function () {
 			phantom.exit();
 		});
