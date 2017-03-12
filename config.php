@@ -63,7 +63,7 @@ $options->exclude_items_on_fail = 'user';
 // for 10 minutes. Initially it's best
 // to keep this disabled to make sure everything works
 // as expected.
-$options->caching = false;
+$options->caching = true;
 
 // Cache directory
 // ----------------------

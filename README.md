@@ -105,3 +105,7 @@ Although we don't have examples in other programming languages, the essential st
 設定偵測用的預設網址：/config.php
 設定下一頁：/config.php
 設定選擇範圍：/libraries/content-extractor/SiteConfig.php
+
+# OpenVZ Template
+debian-7-full-text-rss_i386.tar.gz
+https://drive.google.com/open?id=0B5UXWzdIPpm0VzJyV29GRklubkE
