@@ -617,8 +617,15 @@ foreach ($items as $key => $item) {
             $title = $origin_title;
         }
         
+        $set_title = $title;
+        $full_title = "";
+        $title_length_limit = 300;
+        if (mb_strlen($set_title) > $title_length_limit) {
+            $set_title = mb_substr($set_title, 0, $title_length_limit) . "...";
+            $full_title = "<h1>" . $title . "</h1>";
+        }
         
-	$newitem->setTitle($title);
+	$newitem->setTitle($set_title);
         
 	if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
 		if ($permalink !== false) {
@@ -726,22 +733,27 @@ foreach ($items as $key => $item) {
 			}
 		}
 	}
-	if ($do_content_extraction) {
+            if ($do_content_extraction) {
 		// if we failed to extract content...
 		if (!$extract_result) {
-			if ($exclude_on_fail) continue; // skip this and move to next item
+			if ($exclude_on_fail) {
+                            continue; // skip this and move to next item
+                        }
 			//TODO: get text sample for language detection
 			if (!$valid_key) {
-				$html = $options->error_message;
+                            $html = $options->error_message;
 			} else {
-				$html = $options->error_message_with_key;
+                            $html = $options->error_message_with_key;
 			}
 			// keep the original item description
 			$html .= $item->get_description();
                         //echo "[" . $html . "]";
-		} else {
+		} else {    // if (!$extract_result) {
+                    if (is_object($content_block)) {
 			$readability->clean($content_block, 'select');
-			if ($options->rewrite_relative_urls) makeAbsolute($effective_url, $content_block);
+			if ($options->rewrite_relative_urls) {
+                            makeAbsolute($effective_url, $content_block);
+                        }
 			// footnotes
 			if (($links == 'footnotes') && (strpos($effective_url, 'wikipedia.org') === false)) {
 				//$readability->addFootnotes($content_block);
@@ -760,39 +772,47 @@ foreach ($items as $key => $item) {
 				}
                                 //echo "content_block: [" . $html . "]";
 			}
-                        //echo "[".$html."]";
-			// post-processing cleanup
-			$html = preg_replace('!<p>[\s\h\v]*</p>!u', '', $html);
-			if ($links == 'remove') {
-				$html = preg_replace('!</?a[^>]*>!', '', $html);
-			}
-                        //echo "[". $html ."]";
-                        
-			// get text sample for language detection
-			$text_sample = strip_tags(substr($html, 0, 500));
-			if (!$valid_key) {
-				$html = make_substitutions($options->message_to_prepend).$html;
-				$html .= make_substitutions($options->message_to_append);
-			} else {
-				$html = make_substitutions($options->message_to_prepend_with_key).$html;	
-				$html .= make_substitutions($options->message_to_append_with_key);
-			}
-		}
-	}
-	/*
-	if ($format == 'atom') {
-		$newitem->addElement('content', $html);
-		$newitem->setDate((int)$item->get_date('U'));
-		if ($author = $item->get_author()) {
-			$newitem->addElement('author', array('name'=>$author->get_name()));
-		}
-	} else { 
-	*/
+                    }   // if (is_object($content_block)) {
+                    else {
+                        $html = $content_block;
+                    }
+                    //echo "[".$html."]";
+                    // post-processing cleanup
+                    $html = preg_replace('!<p>[\s\h\v]*</p>!u', '', $html);
+                    if ($links == 'remove') {
+                            $html = preg_replace('!</?a[^>]*>!', '', $html);
+                    }
+                    //echo "[". $html ."]";
+
+                    // get text sample for language detection
+                    $text_sample = strip_tags(substr($html, 0, 500));
+                    if (!$valid_key) {
+                            $html = make_substitutions($options->message_to_prepend).$html;
+                            $html .= make_substitutions($options->message_to_append);
+                    } else {
+                            $html = make_substitutions($options->message_to_prepend_with_key).$html;	
+                            $html .= make_substitutions($options->message_to_append_with_key);
+                    }
+                }   // if (!$extract_result) {   
+            }   // if ($do_content_extraction) {
+                /*
+                if ($format == 'atom') {
+                        $newitem->addElement('content', $html);
+                        $newitem->setDate((int)$item->get_date('U'));
+                        if ($author = $item->get_author()) {
+                                $newitem->addElement('author', array('name'=>$author->get_name()));
+                        }
+                } else { 
+                */
 		if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
 			$newitem->addElement('guid', 'http://fivefilters.org/content-only/redirect.php?url='.urlencode($item->get_permalink()), array('isPermaLink'=>'false'));
 		} else {
 			$newitem->addElement('guid', $item->get_permalink(), array('isPermaLink'=>'true'));
 		}
+                
+                // 如果標題太長，則在這裡加入標題敘述
+                $html = $full_title . $html;
+                
 		$newitem->setDescription($html);
 		
 		// set date
@@ -818,7 +838,9 @@ foreach ($items as $key => $item) {
 		// add language
 		if ($detect_language) {
 			$language = $extractor->getLanguage();
-			if (!$language) $language = $feed->get_language();
+			if (!$language) {
+                            $language = $feed->get_language();
+                        }
 			if (($detect_language == 3 || (!$language && $detect_language == 2)) && $text_sample) {
 				try {
 					if ($use_cld) {
@@ -850,7 +872,9 @@ foreach ($items as $key => $item) {
 		}
 		
 		// add MIME type (if it appeared in our exclusions lists)
-		if (isset($type)) $newitem->addElement('dc:format', $type);
+		if (isset($type)) {
+                    $newitem->addElement('dc:format', $type);
+                }
 		// add effective URL (URL after redirects)
 		if (isset($effective_url)) {
 			//TODO: ensure $effective_url is valid witout - sometimes it causes problems, e.g.
@@ -892,7 +916,9 @@ foreach ($items as $key => $item) {
 }
 
 // output feed
-if ($format == 'json') $output->setFormat(JSON);
+if ($format == 'json') {
+    $output->setFormat(JSON);
+}
 if ($options->caching) {
 	ob_start();
 	$output->genarateFeed();
@@ -922,7 +948,9 @@ function url_allowed($url) {
 				break;
 			}
 		}
-		if (!$allowed) return false;
+		if (!$allowed) {
+                    return false;
+                }
 	} else {
 		foreach ($options->blocked_urls as $blockurl) {
 			if (stristr($url, $blockurl) !== false) {

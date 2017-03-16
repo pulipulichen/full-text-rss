@@ -1,0 +1,1 @@
+body: phantomjs function ($c) {return $c;}; [itemprop="articleBody"]

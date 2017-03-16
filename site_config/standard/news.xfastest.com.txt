@@ -1,1 +1,1 @@
-body: //div[@itemprop = 'articleBody']
+body: //div[@itemprop = 'articleBody']/*[not(div[@class = 'ssbp-container'])]

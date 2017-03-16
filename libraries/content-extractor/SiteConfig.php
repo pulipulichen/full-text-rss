@@ -119,9 +119,13 @@ class SiteConfig
 		$host = strtolower($host);
                 
                 //print_r(array("buikl", $host));
-                
-		if (substr($host, 0, 4) == 'www.') $host = substr($host, 4);
-		if (!$host || (strlen($host) > 200) || !preg_match(self::HOSTNAME_REGEX, $host)) return false;
+                //echo $host;
+		//if (substr($host, 0, 4) == 'www.') $host = substr($host, 4);
+		if (!$host 
+                        //|| (strlen($host) > 200) 
+                        || !preg_match(self::HOSTNAME_REGEX, $host)) { 
+                        return false;
+                }
 		// check for site configuration
 		$try = array($host);
 		$split = explode('.', $host);
@@ -129,18 +133,19 @@ class SiteConfig
                 //print_r(array("buikl 1", $host));
                 
 		if (count($split) > 1) {
-			array_shift($split);
-			$try[] = '.'.implode('.', $split);
+                    array_shift($split);
+                    $try[] = '.'.implode('.', $split);
 		}
+                //print_r(self::$config_cache);
 		foreach ($try as $h) {
-			if (array_key_exists($h, self::$config_cache)) {
-				self::debug("... cached ($h)");
-				return self::$config_cache[$h];
-			} elseif (file_exists(self::$config_path."/$h.txt")) {
-				self::debug("... from file ($h)");
-				$file = self::$config_path."/$h.txt";
-				break;
-			}
+                    if (array_key_exists($h, self::$config_cache)) {
+                        self::debug("... cached ($h)");
+                        return self::$config_cache[$h];
+                    } elseif (file_exists(self::$config_path."/$h.txt")) {
+                        self::debug("... from file ($h)");
+                        $file = self::$config_path."/$h.txt";
+                        break;
+                    }
 		}
                 
                 //print_r(array("buikl 2", $host));

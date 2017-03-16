@@ -12,7 +12,9 @@
 // .....................................................
 
 // Create config object
-if (!isset($options)) $options = new stdClass();
+if (!isset($options)) {
+    $options = new stdClass();
+}
 
 // Enable service
 // ----------------------
@@ -88,7 +90,7 @@ $options->message_to_append = '';
 
 // Error message when content extraction fails (without access key)
 // ----------------------
-$options->error_message = '[unable to retrieve full-text content]';
+$options->error_message = '[unable to retrieve full-text content]<br />';
 
 // Keep enclosure in feed items
 // If enabled, we will try to preserve enclosures if present.
@@ -318,7 +320,7 @@ $options->message_to_append_with_key = '';
 
 // Error message when content extraction fails (with API key) (deprecated)
 // ----------------------
-$options->error_message_with_key = '[unable to retrieve full-text content]';
+$options->error_message_with_key = '[unable to retrieve full-text content]<br />';
 
 // 下一頁的規則
 // ----------------------
