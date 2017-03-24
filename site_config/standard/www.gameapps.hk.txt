@@ -1,0 +1,1 @@
+body: phantomjs function ($c) {$c = str_replace('src="/static/images/image_holder.png"', " ", $c);$c = str_replace(' data-original="', ' src="', $c);return $c;}; div.news-images,div.news-content

@@ -650,7 +650,9 @@ foreach ($items as $key => $item) {
 		$effective_url = $response['effective_url'];
                 //echo $effective_url;
                 //$effective_url = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
-		if (!url_allowed($effective_url)) continue;
+		if (!url_allowed($effective_url)) {
+                    continue;
+                }
 		// check if action defined for returned Content-Type
 		$type = null;
 		if (preg_match('!^Content-Type:\s*(([-\w]+)/([-\w\+]+))!im', $response['headers'], $match)) {

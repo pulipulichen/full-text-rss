@@ -1,0 +1,1 @@
+body: phantomjs function ($c) {return str_replace('src="http://goo.gl/C1pBs" data-original=', " src=", $c);}; div.content
