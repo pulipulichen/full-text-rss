@@ -1,0 +1,1 @@
+body: phantomjs function ($c) {$start = strpos($c, "<!-- /#story_bady_info -->") + 26;$end = strpos($c, "<!--999-->", $start);$c = substr($c, $start, $end-$start);$c = str_replace('<a href="####" class="photo_pop_icon">分享</a> <div class="photo_pop"> <ul> <li class="facebook"><a title="facebook" href="#">facebook</a></li> </ul>', "", $c);return $c;}; *
