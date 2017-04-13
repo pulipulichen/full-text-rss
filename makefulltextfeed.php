@@ -81,6 +81,8 @@ require_once 'libraries/simplepie/SimplePieAutoloader.php';
 // assume will always be available.
 require_once 'libraries/simplepie/SimplePie/Core.php';
 
+require_once 'site_config/description_filter.php';
+
 ////////////////////////////////
 // Load config file
 ////////////////////////////////
@@ -617,15 +619,7 @@ foreach ($items as $key => $item) {
             $title = $origin_title;
         }
         
-        $set_title = $title;
-        $full_title = "";
-        $title_length_limit = 300;
-        if (mb_strlen($set_title) > $title_length_limit) {
-            $set_title = mb_substr($set_title, 0, $title_length_limit) . "...";
-            $full_title = "<h1>" . $title . "</h1>";
-        }
         
-	$newitem->setTitle($set_title);
         
 	if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
 		if ($permalink !== false) {
@@ -812,8 +806,29 @@ foreach ($items as $key => $item) {
 			$newitem->addElement('guid', $item->get_permalink(), array('isPermaLink'=>'true'));
 		}
                 
+                $identifier_url;
+                if (isset($effective_url)) {
+                    $identifier_url = remove_url_cruft(utf8_encode($effective_url));
+                }
+                else {
+                    $identifier_url = remove_url_cruft($item->get_permalink());
+                }
+
+                $set_title = $title;
+                $set_title = filter_title_by_url($set_title, $identifier_url, $item, $html);
+
+                $full_title = "";
+                $title_length_limit = 300;
+                if (mb_strlen($set_title) > $title_length_limit) {
+                    $set_title = mb_substr($set_title, 0, $title_length_limit) . "...";
+                    $full_title = "<h1>" . $title . "</h1>";
+                }
+
+                $newitem->setTitle($set_title);
+                
                 // 如果標題太長，則在這裡加入標題敘述
                 $html = $full_title . $html;
+                $html = filter_description_by_url($html, $identifier_url, $item);
                 
 		$newitem->setDescription($html);
 		
@@ -886,6 +901,8 @@ foreach ($items as $key => $item) {
 		} else {
 			$newitem->addElement('dc:identifier', remove_url_cruft($item->get_permalink()));
 		}
+                
+                
 		// check for enclosures
 		if ($options->keep_enclosures) {
 			if ($enclosures = $item->get_enclosures()) {

@@ -1,0 +1,1 @@
+body: phantomjs function ($c) {return $c;}; div.content div.ctnt div.text
