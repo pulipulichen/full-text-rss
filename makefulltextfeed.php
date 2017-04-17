@@ -827,6 +827,13 @@ foreach ($items as $key => $item) {
                     $set_title = $item->get_title();
                 }
                 
+                $set_title = str_replace("<br>", " ", $set_title);
+                $set_title = str_replace("<br/>", " ", $set_title);
+                $set_title = str_replace("<br />", " ", $set_title);
+                $set_title = str_replace("&amp;lt;br&amp;gt;", " ", $set_title);
+                $set_title = str_replace("&lt;br&gt;", " ", $set_title);
+                $set_title = str_replace("\n", " ", $set_title);
+                
                 $full_title = "";
                 $title_length_limit = 300;
                 if (mb_strlen($set_title) > $title_length_limit) {
