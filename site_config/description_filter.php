@@ -19,7 +19,8 @@ function filter_description_by_url($html, $url, $item) {
         
         //$title = $title;
     }
-    else if (startsWith($url, "http://sub-jetns-2016.blogspot.tw/")) {
+    else if (startsWith($url, "http://sub-jetns-2016.blogspot.tw/")
+            || startsWith($url, "http://olw-issue-20151220.blogspot.tw/")) {
         // http://www.emeraldinsight.com/doi/abs/10.1108/JD-06-2016-0073?af=R
         $html = htmlspecialchars_decode($item->get_description());
         //$title = $title;
@@ -55,6 +56,12 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "http://www.emeraldinsight.com/")) {
         // http://www.emeraldinsight.com/doi/abs/10.1108/JD-06-2016-0073?af=R
         $title = htmlspecialchars_decode($item->get_title());
+        //$title = $title;
+    }
+    else if (startsWith($url, "http://olw-issue-20151220.blogspot.tw/")) {
+        // http://www.emeraldinsight.com/doi/abs/10.1108/JD-06-2016-0073?af=R
+        $title = htmlspecialchars_decode($item->get_title());
+        $title = str_replace("[OpenLiveWriter/OpenLiveWriter] ", "", $title);
         //$title = $title;
     }
     else if (startsWith($url, "http://sub-jetns-2016.blogspot.tw/")) {
