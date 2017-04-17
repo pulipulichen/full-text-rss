@@ -709,8 +709,8 @@ foreach ($items as $key => $item) {
 		}
 		// use extracted title for both feed and item title if we're using single-item dummy feed
 		if ($isDummyFeed) {
-			$output->setTitle($title);
-			$newitem->setTitle($title);
+                    $output->setTitle($title);
+                    $newitem->setTitle($title);
 		}
 		if ($do_content_extraction) {		
 			if ($extract_pattern && isset($content_block)) {
@@ -735,14 +735,20 @@ foreach ($items as $key => $item) {
 			if ($exclude_on_fail) {
                             continue; // skip this and move to next item
                         }
-			//TODO: get text sample for language detection
-			if (!$valid_key) {
-                            $html = $options->error_message;
-			} else {
-                            $html = $options->error_message_with_key;
+                        $html = "";
+                        
+                        //TODO: get text sample for language detection
+			if ($valid_key) {
+                            $html .= $options->error_message_with_key;
 			}
+                        
 			// keep the original item description
 			$html .= $item->get_description();
+                        
+			//TODO: get text sample for language detection
+			if (!$valid_key) {
+                            $html .= $options->error_message;
+			}
                         //echo "[" . $html . "]";
 		} else {    // if (!$extract_result) {
                     if (is_object($content_block)) {
@@ -817,13 +823,17 @@ foreach ($items as $key => $item) {
                 $set_title = $title;
                 $set_title = filter_title_by_url($set_title, $identifier_url, $item, $html);
 
+                if ($set_title === null || trim($set_title) === "") {
+                    $set_title = $item->get_title();
+                }
+                
                 $full_title = "";
                 $title_length_limit = 300;
                 if (mb_strlen($set_title) > $title_length_limit) {
                     $set_title = mb_substr($set_title, 0, $title_length_limit) . "...";
                     $full_title = "<h1>" . $title . "</h1>";
                 }
-
+                
                 $newitem->setTitle($set_title);
                 
                 // 如果標題太長，則在這裡加入標題敘述
