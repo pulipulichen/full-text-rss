@@ -33,6 +33,14 @@ function filter_description_by_url($html, $url, $item) {
         //$title = $title;
         //<dt class="label">•</dt>
     }
+    else if (startsWith($url, "https://www.youtube.com/watch?v=")) {
+        //$html = htmlspecialchars_decode($item->get_item_tags("group", "media:group")) . "aaa";
+        
+        // <iframe width="560" height="315" src="https://www.youtube.com/embed/RBHUEIJMpCY" frameborder="0" allowfullscreen></iframe>
+        $id = substr($url, strpos($url, "v=") + 2);
+        $html = '<div>' . $html . '</div><iframe width="560" height="315" src="https://www.youtube.com/embed/' . $id . '" frameborder="0" allowfullscreen></iframe>';
+        $html = $html . '<div>Preview thumbnail: <br /><img src="https://img.youtube.com/vi/' . $id .'/default.jpg" /></div>';
+    }
     
     return $html;
 }

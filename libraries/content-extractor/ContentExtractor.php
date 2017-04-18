@@ -11,6 +11,8 @@
  * @copyright 2011 Keyvan Minoukadeh
  * @license http://www.gnu.org/licenses/agpl-3.0.html AGPL v3
  */
+ 
+include("simple_html_dom.php");
 
 class ContentExtractor
 {
@@ -60,13 +62,13 @@ class ContentExtractor
 	function __construct($path, $fallback=null) {
 		SiteConfig::set_config_path($path, $fallback);
                 
-                // 20131011 Pulipuli Chen
-                // 加入記錄
-                $this->path = $path;
-                $this->fallback = $fallback;
-                
-                require(dirname(__FILE__).'/../../config.php');
-                $this->options = $options;
+		// 20131011 Pulipuli Chen
+		// 加入記錄
+		$this->path = $path;
+		$this->fallback = $fallback;
+		
+		require(dirname(__FILE__).'/../../config.php');
+		$this->options = $options;
 	}
 	
 	protected function debug($msg) {
@@ -111,6 +113,10 @@ class ContentExtractor
 		return false;
 	}
 	
+	public function throw_exception ($message) {
+		throw new Exception($message);
+	}
+	
 	// returns true on success, false on failure
 	// $smart_tidy indicates that if tidy is used and no results are produced, we will
 	// try again without it. Tidy helps us deal with PHP's patchy HTML parsing most of the time
@@ -130,7 +136,41 @@ class ContentExtractor
 				$this->config = new SiteConfig();
 			}
 		}
-                //echo count($this->config->body);
+		
+		// ---------------------------
+		//throw new Exception(implode("|", $this->config->body));
+		$needle = "phantomjs ";
+		$phantomjs_body = null;
+		if (count($this->config->body) > 0 && strpos($this->config->body[0], $needle) === 0) {
+			$code = implode("", $this->config->body);
+			$func = substr($code, strpos($code, " "), strrpos($code, "};")-strpos($code, " ")+2);
+			
+			$selector = substr($code, strpos($code, "};") + 2, strlen($code)-(strpos($code, "};") + 2));
+			$selector = trim($selector);
+			if ($selector !== "") {
+				$selector = ' "'.$selector . '"';
+			}
+			
+			//throw new Exception($code);
+			eval('$func = ' . $func);
+			//throw new Exception($func("t"));
+			
+			//$this->throw_exception($url);
+			$cmd = '/var/www/phantomjs-2.1.1-linux-i686/bin/phantomjs /var/www/phantomjs-2.1.1-linux-i686/bin/phantomjs-exec.js "' . $url . '"' . $selector;
+			
+			//$this->throw_exception($cmd);
+			
+			exec($cmd, $output);
+			
+			
+			//$output = implode("\n", $output);
+			$output = file_get_contents("/tmp/phantomjs_cache/phantomjs_output.html");
+			$phantomjs_body = $func($output);
+			//$this->throw_exception($phantomjs_body);
+		}
+		// ---------------------------
+		
+		//echo count($this->config->body);
 		// store copy of config in our static cache array in case we need to process another URL
 		SiteConfig::add_to_cache($host, $this->config);
 		
@@ -302,33 +342,91 @@ class ContentExtractor
 		}
 		
 		// try to get body
-                
-		foreach ($this->config->body as $pattern) {
-			$elems = @$xpath->query($pattern, $this->readability->dom);
-			// check for matches
-                        //echo "elems->length: [" . $pattern. "]\n\n";
-                        //echo "elems->length: [" . $this->readability->dom->innerHTML. "]\n\n";
-			if ($elems && $elems->length > 0) {
-                            
-                            //echo "elems->length matched: [" . $pattern. "]\n\n";
-                            
-                            //print_r($next_page_pattern);
-                            
-			    $this->body = $this->getMatchedBody($elems);
-                            
-                            $next_page_content = $this->retrieveNextPage($xpath, $url);
-                            //if ($next_page_content !== FALSE) {
-                            //    $body->appendChild($next_page_content);
-                                //$next_page_content = $this->retrieveNextPage($xpath, $body, $url);
-                            //}
-                           
-                            //$this->body = $body;
-                            
-                            if ($elems->length === 1) {	
-                                break;
-                            }
+		if ($phantomjs_body === null) {
+			foreach ($this->config->body as $pattern) {
+				$elems = @$xpath->query($pattern, $this->readability->dom);
+				// check for matches
+							//echo "elems->length: [" . $pattern. "]\n\n";
+							//echo "elems->length: [" . $this->readability->dom->innerHTML. "]\n\n";
+				if ($elems && $elems->length > 0) {
+								
+					//echo "elems->length matched: [" . $pattern. "]\n\n";
+					
+					//print_r($next_page_pattern);
+								
+					$this->body = $this->getMatchedBody($elems);
+								
+					$next_page_content = $this->retrieveNextPage($xpath, $url);
+					//if ($next_page_content !== FALSE) {
+					//    $body->appendChild($next_page_content);
+						//$next_page_content = $this->retrieveNextPage($xpath, $body, $url);
+					//}
+				   
+					//$this->body = $body;
+					
+					if ($elems->length === 1) {	
+						break;
+					}
+				}
+			}	
+		}
+		else {
+			
+			//echo $dom->find("div.lucy-content")[0] . "\n\n\n";
+			//$this->throw_exception("!");
+			/*
+			$dom = $this->readability->dom->createElement('div');
+			$dom1 = new DOMDocument;
+			$dom1->loadHTML($html->save());
+			foreach ($dom1->childNodes as $node) {
+				$node = $this->readability->dom->importNode($node);
+				$dom->appendChild($node);
+			}*/
+			/*
+			//libxml_use_internal_errors(true);
+			$dom2 = new DOMDocument;
+			$field_html = $dom2->createDocumentFragment(); // create fragment
+			//echo $phantomjs_body . "\n\n\n";
+			$field_html->appendXML($phantomjs_body);
+			foreach ($field_html->childNodes as $node) {
+				$node = $this->readability->dom->importNode($node);
+				$dom->appendChild($node);
 			}
-		}	
+			//@$dom->appendChild($field_html);
+			*/
+			/*
+			//
+			$tmpDoc = $this->readability->dom->createDocumentFragment();
+			$tmpDoc->loadHTML($phantomjs_body);
+			foreach ($tmpDoc->getElementsByTagName('body')->item(0)->childNodes as $node) {
+				$node = $this->readability->dom->importNode($node);
+				$dom->appendChild($node);
+			}
+			*/
+			/*
+			$code = implode("", $this->config->body);
+			$code = substr($code, strpos($code, "};") + 2, strlen($code)-(strpos($code, "};") + 2));
+			$code = trim($code);
+			if ($code !== "") {
+				$dom = str_get_html($phantomjs_body);
+				$this->body = $dom->find($code)[0]->outertext;
+			}
+			else {
+				$this->body = $dom->save();
+			}
+			*/
+			//$dom = str_get_html($phantomjs_body);	//
+			//$this->body = $dom->save();
+			$this->body = $phantomjs_body;
+			
+			//$this->body = $phantomjs_body;
+			//$doc = new DOMDocument();
+			//$doc->loadHTML($phantomjs_body);
+			//$elems = @$xpath->query("//div[@itemprop = 'GN-lbox3B']", (new Readability($phantomjs_body, $url))->dom);
+			//$this->body = $this->getMatchedBody($elems);
+			
+			//$this->throw_exception("!!" . $phantomjs_body);
+		}
                 
                 //echo "auto detect之前： [" . $this->body->innerHTML . "]\n\n";
 		
@@ -341,6 +439,9 @@ class ContentExtractor
 			}
 		}
 		// detect body?
+		//if (!empty($this->config->body)) {
+		//	throw new Exception("有設定: " . json_encode($this->config->body));
+		//}
 		if (!isset($this->body)) {
 			if (empty($this->config->body) || $this->config->autodetect_on_failure) {
 				$detect_body = true;
@@ -501,7 +602,7 @@ class ContentExtractor
 				$detect_body = false;
 			}
 		}
-                //echo "after detect_body: [" . $this->body->innerHTML . "]\n\n";
+		//echo "after detect_body: [" . $this->body->innerHTML . "]\n\n";
 		
 		// Find author in rel="author" marked element
 		// We only use this if there's exactly one.
@@ -542,7 +643,9 @@ class ContentExtractor
 		if ($detect_title || $detect_body) {
 			$this->debug('Using Readability');
 			// clone body if we're only using Readability for title (otherwise it may interfere with body element)
-			if (isset($this->body)) $this->body = $this->body->cloneNode(true);
+			if (isset($this->body) && is_object($this->body) ) {
+				$this->body = $this->body->cloneNode(true);
+			}
 			$success = $this->readability->init();
 		}
 		if ($detect_title) {
@@ -568,7 +671,9 @@ class ContentExtractor
                 //echo "如果沒有Body [" . $this->body->innerHTML . "]\n\n";
 		if (isset($this->body)) {
 			// remove scripts
-			$this->readability->removeScripts($this->body);
+			if (is_object($this->body)) {
+				$this->readability->removeScripts($this->body);
+			}
 			// remove any h1-h6 elements that appear as first thing in the body
 			// and which match our title
 			if (isset($this->title) && ($this->title != '')) {

@@ -2464,6 +2464,10 @@ class SimplePie_Core
 		{
 			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_HTML, $this->get_base($return[0]));
 		}
+                elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ITUNES, 'media:group'))
+		{
+			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_HTML, $this->get_base($return[0]));
+		}
 		else
 		{
 			return null;

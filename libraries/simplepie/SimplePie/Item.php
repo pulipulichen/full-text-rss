@@ -223,11 +223,11 @@ class SimplePie_Item
 		{
 			return $this->sanitize($return[0]['data'], SIMPLEPIE_CONSTRUCT_HTML);
 		}
-
 		elseif (!$description_only)
 		{
 			return $this->get_content(true);
 		}
+                
 		else
 		{
 			return null;
