@@ -1,5 +1,5 @@
 <?php
-function filter_description_by_url($html, $url, $item) {
+function filter_description_by_url($html, $url, $item, $has_extract) {
     if (startsWith($url, "https://www.bnext.com.tw")) {
         $start_pos = strpos($html, '<article class="article_summary">');
         $end_pos = strpos($html, '<div id="oneadIRMIRTag">', $start_pos);
@@ -10,17 +10,21 @@ function filter_description_by_url($html, $url, $item) {
     }
     else if (startsWith($url, "http://www.emeraldinsight.com/")) {
         // http://www.emeraldinsight.com/doi/abs/10.1108/JD-06-2016-0073?af=R
+        
+        // http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=http%3A%2F%2Fwww.emeraldinsight.com%2Faction%2FshowFeed%3Ftype%3Detoc%26feed%3Drss%26jc%3Dprog&amp;max=10&amp;links=preserve&amp;exc=&amp;submit=Create+Feed
         $html = htmlspecialchars_decode($item->get_description());
-        $html = str_replace("<br/>  Purpose", "\n<br/>  <strong>Purpose: </strong> ", $html);
-        $html = str_replace("   Design/methodology/approach ", "\n<br/>  <strong>Design/methodology/approach:</strong> ", $html);
-        $html = str_replace("   Findings ", "\n<br/>  <strong>Findings:</strong> ", $html);
-        $html = str_replace("   Research limitations/implications ", "\n<br/>  <strong>Research limitations/implications:</strong> ", $html);
-        $html = str_replace("   Originality/value ", "\n<br/>  <strong>Originality/value:</strong> ", $html);
+        $html = "<h1>". $item->get_title() . "</h1>\n<br />" . $html;
+        $html = str_replace("<br/>  Purpose", "\n<br/>  \n<br/>  <strong>Purpose: </strong> ", $html);
+        $html = str_replace("   Design/methodology/approach ", "\n<br/>  \n<br/>  <strong>Design/methodology/approach:</strong> ", $html);
+        $html = str_replace("   Findings ", "\n<br/>  \n<br/>  <strong>Findings:</strong> ", $html);
+        $html = str_replace("   Research limitations/implications ", "\n<br/>  \n<br/>  <strong>Research limitations/implications:</strong> ", $html);
+        $html = str_replace("   Originality/value ", "\n<br/>  \n<br/>  <strong>Originality/value:</strong> ", $html);
         
         //$title = $title;
     }
     else if (startsWith($url, "http://sub-jetns-2016.blogspot.tw/")
-            || startsWith($url, "http://olw-issue-20151220.blogspot.tw/")) {
+            || startsWith($url, "http://olw-issue-20151220.blogspot.tw/")
+            || startsWith($url, "http://i.imgur.com/")) {
         // http://www.emeraldinsight.com/doi/abs/10.1108/JD-06-2016-0073?af=R
         $html = htmlspecialchars_decode($item->get_description());
         //$title = $title;
@@ -41,9 +45,31 @@ function filter_description_by_url($html, $url, $item) {
         $html = '<div>' . $html . '</div><iframe width="560" height="315" src="https://www.youtube.com/embed/' . $id . '" frameborder="0" allowfullscreen></iframe>';
         $html = $html . '<div>Preview thumbnail: <br /><img src="https://img.youtube.com/vi/' . $id .'/default.jpg" /></div>';
     }
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") 
+            && (startsWith($url, "https://www.facebook.com/")
+            || startsWith($url, "https://www.wallflux.com/")) ) {
+        $html = htmlspecialchars_decode($item->get_description());
+        if (strpos($html, '<div class="message">') > 0) {
+            $pos = strpos($html, '<div class="message">');
+            $html = substr($html, $pos, strlen($html)-$pos);
+        }
+        $html = str_replace( '<img class="thumb" src="//www.wallflux.com/image/like.png">', "Like: ", $html);
+    }
+    else if (startsWith($url, "http://www.eprice.com.tw/")) {
+        $html = str_replace('.tmp" data-original="', '" data-original="', $html);
+    }
+    else if (startsWith($_GET["url"], "https://fbrss.com/feed/")) {
+        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
+        $original_html = htmlspecialchars_decode($item->get_description());
+        if ($has_extract === true) {
+            $html = $original_html . "<br /><br />" . $html;
+        }
+    }
     
     return $html;
 }
+
+// ----------------------------------------------------------------
 
 function filter_title_by_url($title, $url, $item, $html = NULL) {
     if (startsWith($url, "http://www.plurk.com/")) {
@@ -78,7 +104,135 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         $title = str_replace("ETS TOC Alert: Journal of Educational Technology & Society", "ETS TOC:", $title);
         //$title = $title;
     }
-    return $title;
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") 
+            && (startsWith($url, "https://www.facebook.com/")
+            || startsWith($url, "https://www.wallflux.com/")) ) {
+        $title = htmlspecialchars_decode($item->get_title());
+        if (startsWith($title, "Photo - ")) {
+            $len = strlen("Photo - ");
+            $title = substr($title, $len);
+        }
+        if (startsWith($title, "Video - ")) {
+            $title = substr($title, strlen("Video - "));
+        }
+        if (startsWith($title, "Group wall post by ")) {
+            $title = substr($title, strlen("Group wall post by "));
+        }
+        
+        if ($html !== NULL) {
+            $abs = htmlspecialchars_decode($item->get_description());
+            if (strpos($abs, '<div class="like">') > 0) {
+                $abs = substr($abs, 0, strpos($abs, '<div class="like">'));
+            }
+            if (strpos($abs, '<div class="time">') > 0) {
+                $abs = substr($abs, 0, strpos($abs, '<div class="time">'));
+            }
+            $abs = strip_tags($abs);
+            $abs = trim($abs);
+            if ($abs !== "") {
+                if (mb_strlen($abs, "UTF-8") > 50) {
+                    $abs = mb_substr($abs, 0, 50, "UTF-8") . "...";
+                } 
+                
+                $padding = "";
+                while (mb_substr($title,0,1,"UTF-8") === mb_substr($abs,0,1,"UTF-8")) {
+                    $padding .= mb_substr($title,0,1,"UTF-8");
+                    $title = mb_substr($title,1,mb_strlen($title,"UTF-8")-1,"UTF-8");
+                    $abs = mb_substr($abs,1,mb_strlen($abs,"UTF-8")-1,"UTF-8");
+                }
+                $title = $padding.$title.$abs;
+            }
+            if (strpos($title, ":") > 0) {
+                $pos = strpos($title, ":")+1;
+                $title = substr($title, $pos);
+            }
+        }
+    }
+    else if (startsWith($url, "http://i.imgur.com/")) {
+        $title = htmlspecialchars_decode($item->get_title());
+    }
+    else if (startsWith($url, "https://udn.com/news/story/")) {
+        $title = strip_postfix_to($title, " | ");
+        $title = strip_postfix_to($title, " | ");
+    }
+    else if (startsWith($url, "https://www.bnext.com.tw/")) {
+        $title = strip_postfix_to($title, "｜");
+    }
+    else if (startsWith($url, "http://life.tw/")) {
+        $title = strip_postfix_to($title, " LIFE生活網");
+    }
+    else if (startsWith($url, "http://www.eprice.com.tw/")) {
+        $title = strip_postfix_to($title, " | ");
+        $title = strip_postfix_to($title, " - ");
+    }
+    else if (startsWith($url, "http://www.gameapps.hk/news/") 
+            || startsWith($url, "http://youxiputao.com/articles/") ) {
+        // http://youxiputao.com/articles/
+        $title = strip_postfix_to($title, " - ");
+    }
+    else if (startsWith($_GET["url"], "https://fbrss.com/feed/")) {
+        
+        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
+        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_141456499343573.xml
+        // 
+        $title = htmlspecialchars_decode($item->get_title());
+        if ($title === "") {
+            $title = htmlspecialchars_decode($item->get_description());
+        }
+        if (startsWith($title, "Photo - ")) {
+            $len = strlen("Photo - ");
+            $title = substr($title, $len);
+        }
+        if (startsWith($title, "Video - ")) {
+            $title = substr($title, strlen("Video - "));
+        }
+        if (startsWith($title, "Group wall post by ")) {
+            $title = substr($title, strlen("Group wall post by "));
+        }
+        
+        if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml") {
+            // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml
+            $title = strip_prefix_to($title, " ");
+            $title = strip_postfix_to($title, "Submitted:");
+        }
+    }
+    
+    
+    return trim($title);
+}
+
+// ---------------------------------------------------------
+
+function strip_postfix($str, $postfix) {
+    if (mb_strrpos($str, $postfix) > 0) {
+        $str = mb_substr($str, 0, mb_strrpos($str, $postfix, "UTF-8"), "UTF-8");
+    }
+    return $str;
+}
+
+function strip_prefix($str, $prefix) {
+    if (mb_strpos($str, $prefix) > 0) {
+        $str = mb_substr($str, 0, mb_strpos($str, $prefix, "UTF-8"), "UTF-8");
+    }
+    return $str;
+}
+
+function strip_postfix_to($str, $postfix_to) {
+    $pos = strrpos($str, $postfix_to);
+    if ($pos > 0) {
+        $str = substr($str, 0, $pos);
+    }
+    return $str;
+}
+
+function strip_prefix_to($str, $to) {
+    $pos = strpos($str, $to);
+    if ($pos > 0) {
+        $pos = $pos + strlen($to);
+        $len = strlen($str);
+        $str = substr($str, $pos, $len-$pos);
+    }
+    return $str;
 }
 
 function startsWith($haystack, $needle)

@@ -523,6 +523,7 @@ $items = $feed->get_items(0, $max);
 $urls_sanitized = array();
 $urls = array();
 foreach ($items as $key => $item) {
+    
     $permalink = $item->get_permalink();
     //echo "{".$permalink."}";
     $permalink = htmlspecialchars_decode($permalink);
@@ -539,6 +540,22 @@ foreach ($items as $key => $item) {
         $a = substr($url, strpos($url, "&a=")+3);
         //echo $a;
         $permalink = $permalink . $a;
+    }
+    
+    /**
+     * @author Pulipuli Chen <pulipuli.chen@gmail.com> 20170423
+     * FB-RSS feed for 原價屋coolpc
+     */
+    if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_169635866411766.xml") {
+        $desc = $item->get_description();
+        $pos1 = strpos($desc, "http://www.coolpc.com.tw/phpBB2/viewtopic.php");
+        $pos2 = strpos($desc, "<br", $pos1+2);
+        if ($pos1 > 0 && $pos2 > 0) {
+            $permalink = substr($desc, $pos1, $pos2);
+        }
+        //echo "[" . $pos1 ."-" . $pos2 ."]";
+        //echo $permalink;
+        // $item->get_permalink()
     }
     
     
@@ -576,6 +593,19 @@ foreach ($items as $key => $item) {
         //$permalink = "http://www.linuxeden.com/html/itnews/20140322/149803.html";
         //$permalink = "http://walker-a.com/archives/2296";
         //$permalink = "http://www.linuxeden.com/html/news/20140125/147867.html";
+        
+        //if ($item->get_title() === "RSS feeds for Facebook pages and group" ) {
+        //    continue;
+        //}
+        
+    
+    if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") &&
+            (trim($item->get_title()) === "RSS feeds for Facebook pages and group"
+            || trim($item->get_title()) === "Wallflux Atom Feed Demonstration"
+            || trim($item->get_title()) === "") ) {
+        continue;
+    }
+    //echo "[" . $item->get_title() . "]";
         
         /**
          * 如果有自定義的網址，則轉換為該網址
@@ -821,11 +851,25 @@ foreach ($items as $key => $item) {
                 }
 
                 $set_title = $title;
-                $set_title = filter_title_by_url($set_title, $identifier_url, $item, $html);
-
                 if ($set_title === null || trim($set_title) === "") {
                     $set_title = $item->get_title();
                 }
+                if ($set_title === null || trim($set_title) === "") {
+                    $set_title = $item->get_description();
+                }
+                
+                // 信件BIG5編碼的問題
+//                if (substr($set_title, 0, 2) === "?=" 
+//                        && substr($set_title, 0, -2) === "?=") {
+//                    try {
+//                        $set_title = iconv_mime_decode($set_title);
+//                    }
+//                    catch (Exception $e) {}
+//                }
+                
+                $set_title = filter_title_by_url($set_title, $identifier_url, $item, $html);
+
+                //echo "[$set_title]";
                 
                 $set_title = str_replace("<br>", " ", $set_title);
                 $set_title = str_replace("<br/>", " ", $set_title);
@@ -835,17 +879,31 @@ foreach ($items as $key => $item) {
                 $set_title = str_replace("\n", " ", $set_title);
                 
                 $full_title = "";
-                $title_length_limit = 300;
-                if (mb_strlen($set_title) > $title_length_limit) {
-                    $set_title = mb_substr($set_title, 0, $title_length_limit) . "...";
+                $title_length_limit = 100;
+                if (mb_strlen($set_title, "UTF-8") > $title_length_limit) {
+                    $set_title = mb_substr($set_title, 0, $title_length_limit, "UTF-8") . "...";
                     $full_title = "<h1>" . $title . "</h1>";
                 }
                 
+                //echo "[[$set_title]]";
+                
                 $newitem->setTitle($set_title);
                 
+                // 信件BIG5編碼的問題
+//                if (substr($html, 0, 2) === "?=" 
+//                        && substr($html, 0, -2) === "?=") {
+//                    try {
+//                        $html = iconv_mime_decode($html);
+//                    }
+//                    catch (Exception $e) {}
+//                }
+                
                 // 如果標題太長，則在這裡加入標題敘述
+                if ($full_title !== "") {
+                    $full_title = "<h1>" . $full_title . "</h1><br />";
+                }
                 $html = $full_title . $html;
-                $html = filter_description_by_url($html, $identifier_url, $item);
+                $html = filter_description_by_url($html, $identifier_url, $item, ($extract_result) );
                 
 		$newitem->setDescription($html);
 		
