@@ -541,12 +541,11 @@ foreach ($items as $key => $item) {
         //echo $a;
         $permalink = $permalink . $a;
     }
-    
-    /**
-     * @author Pulipuli Chen <pulipuli.chen@gmail.com> 20170423
-     * FB-RSS feed for 原價屋coolpc
-     */
-    if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_169635866411766.xml") {
+    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_169635866411766.xml") {
+        /**
+         * @author Pulipuli Chen <pulipuli.chen@gmail.com> 20170423
+         * FB-RSS feed for 原價屋coolpc
+         */
         $desc = $item->get_description();
         $pos1 = strpos($desc, "http://www.coolpc.com.tw/phpBB2/viewtopic.php");
         $pos2 = strpos($desc, "<br", $pos1+2);
@@ -603,6 +602,16 @@ foreach ($items as $key => $item) {
             (trim($item->get_title()) === "RSS feeds for Facebook pages and group"
             || trim($item->get_title()) === "Wallflux Atom Feed Demonstration"
             || trim($item->get_title()) === "") ) {
+        continue;
+    }
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") 
+            && substr($item->get_title(), " - Wallflux Group info") > 0
+            ) {
+        continue;
+    }
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/feed/") 
+            && (strpos($item->get_title(), "Wallflux") > -1 || strpos($item->get_description(), "Wallflux") > -1)
+            ) {
         continue;
     }
     //echo "[" . $item->get_title() . "]";

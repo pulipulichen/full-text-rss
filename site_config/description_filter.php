@@ -45,15 +45,54 @@ function filter_description_by_url($html, $url, $item, $has_extract) {
         $html = '<div>' . $html . '</div><iframe width="560" height="315" src="https://www.youtube.com/embed/' . $id . '" frameborder="0" allowfullscreen></iframe>';
         $html = $html . '<div>Preview thumbnail: <br /><img src="https://img.youtube.com/vi/' . $id .'/default.jpg" /></div>';
     }
-    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") 
-            && (startsWith($url, "https://www.facebook.com/")
-            || startsWith($url, "https://www.wallflux.com/")) ) {
-        $html = htmlspecialchars_decode($item->get_description());
-        if (strpos($html, '<div class="message">') > 0) {
-            $pos = strpos($html, '<div class="message">');
-            $html = substr($html, $pos, strlen($html)-$pos);
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") ) {
+        $original_html = htmlspecialchars_decode($item->get_description());
+        if (strpos($original_html, '<div class="message">') > 0) {
+            $pos = strpos($original_html, '<div class="message">');
+            $original_html = substr($original_html, $pos, strlen($original_html)-$pos);
         }
-        $html = str_replace( '<img class="thumb" src="//www.wallflux.com/image/like.png">', "Like: ", $html);
+        $original_html = str_replace( '<img class="thumb" src="//www.wallflux.com/image/like.png">', "Like: ", $original_html);
+        
+        if ($has_extract === true) {
+            $html = $original_html . "<br /><br />" . $html;
+        }
+        else {
+            $html = $original_html;
+        }
+    }
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/feed/")) {
+        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
+        $original_html = htmlspecialchars_decode($item->get_description());
+        
+        $desc = $html;
+        $pos = strpos($desc, "'s wall: ");
+        if ($pos > 0) {
+            $pos = $pos + strlen("'s wall: ");
+            $html = substr($desc, $pos);
+        }
+        
+        //$html = strip_prefix_to($html, $to);
+        
+        $desc = $original_html;
+        $pos = strpos($desc, "'s wall: ");
+        if ($pos > 0) {
+            $pos = $pos + strlen("'s wall: ");
+            $original_html = substr($desc, $pos);
+        }
+        
+        $pos = strpos($html, '<div class="clearfix _ikh _fbEventsPermalink__layout">');
+        if ($pos > 0) {
+            $pos = $pos + strlen('<div class="clearfix _ikh _fbEventsPermalink__layout">');
+            $pos2 = strpos($html, '<div id="pageFooter" data-referrer="page_footer">', $pos);
+            $pos2 = $pos2 - 5;
+            $html = substr($html, $pos, $pos2-$pos);
+            // 
+        }
+        
+        if ($has_extract === true) {
+            $html = $original_html . "<br /><br />" . $html;
+        }
+        //$html = htmlspecialchars_decode($html);
     }
     else if (startsWith($url, "http://www.eprice.com.tw/")) {
         $html = str_replace('.tmp" data-original="', '" data-original="', $html);
@@ -61,6 +100,7 @@ function filter_description_by_url($html, $url, $item, $has_extract) {
     else if (startsWith($_GET["url"], "https://fbrss.com/feed/")) {
         // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
         $original_html = htmlspecialchars_decode($item->get_description());
+        
         if ($has_extract === true) {
             $html = $original_html . "<br /><br />" . $html;
         }
@@ -104,9 +144,7 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         $title = str_replace("ETS TOC Alert: Journal of Educational Technology & Society", "ETS TOC:", $title);
         //$title = $title;
     }
-    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") 
-            && (startsWith($url, "https://www.facebook.com/")
-            || startsWith($url, "https://www.wallflux.com/")) ) {
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") ) {
         $title = htmlspecialchars_decode($item->get_title());
         if (startsWith($title, "Photo - ")) {
             $len = strlen("Photo - ");
@@ -194,6 +232,41 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
             // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml
             $title = strip_prefix_to($title, " ");
             $title = strip_postfix_to($title, "Submitted:");
+        }
+    }
+    else if (startsWith($_GET["url"], "https://www.wallflux.com/feed/")) {
+        
+        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
+        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_141456499343573.xml
+        // 
+        $title = htmlspecialchars_decode($item->get_title());
+        if ($title === "") {
+            $title = htmlspecialchars_decode($item->get_description());
+        }
+        if (startsWith($title, "Photo - ")) {
+            $len = strlen("Photo - ");
+            $title = substr($title, $len);
+        }
+        if (startsWith($title, "Photo: ")) {
+            $len = strlen("Photo: ");
+            $title = substr($title, $len);
+        }
+        if (startsWith($title, "Link: ")) {
+            $len = strlen("Link: ");
+            $title = substr($title, $len);
+        }
+        if (startsWith($title, "Video - ")) {
+            $title = substr($title, strlen("Video - "));
+        }
+        if (startsWith($title, "Group wall post by ")) {
+            $title = substr($title, strlen("Group wall post by "));
+        }
+        
+        $desc = $item->get_description();
+        $pos = strpos($desc, "'s wall: ");
+        if ($pos > 0) {
+            $pos = $pos + strlen("'s wall: ");
+            $title = substr($desc, $pos);
         }
     }
     
