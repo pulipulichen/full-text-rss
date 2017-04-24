@@ -16,6 +16,14 @@ if (!isset($options)) {
     $options = new stdClass();
 }
 
+// Enable caching
+// ----------------------
+// Enable this if you'd like to cache results
+// for 10 minutes. Initially it's best
+// to keep this disabled to make sure everything works
+// as expected.
+$options->caching = true;
+
 // Enable service
 // ----------------------
 // Set this to false if you want to disable the service.
@@ -59,13 +67,6 @@ $options->rewrite_relative_urls = true;
 // User decides: 'user' (this option will appear on the form)
 $options->exclude_items_on_fail = 'user';
 
-// Enable caching
-// ----------------------
-// Enable this if you'd like to cache results
-// for 10 minutes. Initially it's best
-// to keep this disabled to make sure everything works
-// as expected.
-$options->caching = true;
 
 // Cache directory
 // ----------------------
@@ -326,14 +327,15 @@ $options->error_message_with_key = '[unable to retrieve full-text content]<br />
 // ----------------------
 // 參考資料：http://ap.teesoft.info/
 $next_page_pattern = array(
-    "contains(@href, '&page=')",
-    "contains(@class, 'next')",
-    "contains(@id, 'Next')",
-    "contains(@id, 'next')",
-    "contains(text(), 'Next')",
-    "contains(text(), 'next')",
-    "text()='2'",
-    "contains(text(), '下一頁')"
+    //"contains(@href, '&page=')",
+    //"contains(@class, 'next')",
+    //"contains(@id, 'Next')",
+    //"contains(@id, 'next')",
+    //"contains(text(), 'Next')",
+    //"contains(text(), 'next')",
+    //"text()='2'",
+    //"contains(text(), '下一頁')"
+    
     //"text()='3'",
     //"text()='4'",
     //"text()='5'",

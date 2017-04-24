@@ -185,6 +185,10 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
                 $title = substr($title, $pos);
             }
         }
+        
+        $title = str_replace("爐石戰記 魔獸英雄傳＿技術 閒聊 交流區.:", "", $title);
+        $title = str_replace("[爐石]", "", $title);
+        //echo "[" . $title . "]";
     }
     else if (startsWith($url, "http://i.imgur.com/")) {
         $title = htmlspecialchars_decode($item->get_title());
@@ -192,6 +196,13 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "https://udn.com/news/story/")) {
         $title = strip_postfix_to($title, " | ");
         $title = strip_postfix_to($title, " | ");
+    }
+    else if (startsWith($url, "http://bbs.onyx-international.com.cn")
+            || strpos($url, ".tgbus.com/") > -1) {
+        // http://bbs.onyx-international.com.cn/forum.php?mod=viewthread&tid=24528
+        // 国产用心的大屏厂家才是真爱 - ONYX新闻 - ONYX BOOX BBS
+        $title = strip_postfix_to($title, " - ");
+        $title = strip_postfix_to($title, " - ");
     }
     else if (startsWith($url, "https://www.bnext.com.tw/")) {
         $title = strip_postfix_to($title, "｜");
@@ -229,8 +240,9 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         }
         
         if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml") {
+            // 黑特政大 FB
             // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml
-            $title = strip_prefix_to($title, " ");
+            $title = strip_prefix_to($title, "\n");
             $title = strip_postfix_to($title, "Submitted:");
         }
     }

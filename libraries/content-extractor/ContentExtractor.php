@@ -356,7 +356,7 @@ class ContentExtractor
 								
 					$this->body = $this->getMatchedBody($elems);
 								
-					$next_page_content = $this->retrieveNextPage($xpath, $url);
+					//$next_page_content = $this->retrieveNextPage($xpath, $url);
 					//if ($next_page_content !== FALSE) {
 					//    $body->appendChild($next_page_content);
 						//$next_page_content = $this->retrieveNextPage($xpath, $body, $url);
@@ -365,7 +365,7 @@ class ContentExtractor
 					//$this->body = $body;
 					
 					if ($elems->length === 1) {	
-						break;
+                                            break;
 					}
 				}
 			}	
@@ -877,6 +877,12 @@ class ContentExtractor
         }
         
         public function retrieveNextPage($xpath, $url) {
+            /**
+             * @author Pudding 20170423
+             * 停止使用
+             */
+            return "";
+            
             //$xpath = new DOMXPath($body);
             $next_page_pattern = $this->options->next_page_pattern;
             $next_page_elems = $xpath->query($next_page_pattern, $this->body);

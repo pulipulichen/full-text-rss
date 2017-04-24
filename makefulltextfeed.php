@@ -605,8 +605,7 @@ foreach ($items as $key => $item) {
         continue;
     }
     else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") 
-            && substr($item->get_title(), " - Wallflux Group info") > 0
-            ) {
+            && strpos($item->get_title(), " - Wallflux Group info") > 0) {
         continue;
     }
     else if (startsWith($_GET["url"], "https://www.wallflux.com/feed/") 
