@@ -193,6 +193,26 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "http://i.imgur.com/")) {
         $title = htmlspecialchars_decode($item->get_title());
     }
+    else if (startsWith($url, "https://www.damanwoo.com/node/")) {
+        $title = strip_postfix_to($title, " | 大人物");
+    }
+    else if (startsWith($url, "http://www.ipc.me/")) {
+        $title = strip_postfix_to($title, " | iPc.me");
+    }
+    else if (startsWith($url, "http://www.netadmin.com.tw/")) {
+        $title = strip_postfix_to($title, " - 網管人NetAdmin");
+        $title = strip_postfix_to($title, " - ");
+    }
+    else if (startsWith($url, "https://axiang.cc/")) {
+        $title = strip_postfix_to($title, " | 阿祥的網路筆記本");
+    }
+    else if (startsWith($url, "https://lwn.net/")) {
+        $title = strip_prefix_to($title, "[$] ");
+    }
+    else if (startsWith($url, "http://sub-fju-2017.blogspot")) {
+        $title = strip_prefix_to($title, "輔大公告信：");
+        //$title = 'aaa' . $title;
+    }
     else if (startsWith($url, "https://udn.com/news/story/")) {
         $title = strip_postfix_to($title, " | ");
         $title = strip_postfix_to($title, " | ");

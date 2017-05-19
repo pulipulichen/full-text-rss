@@ -1,0 +1,1 @@
+body: phantomjs function ($c) {$c = str_replace('src="https://cdn1-techbang.pixcdn.tw/assets/lazyload/loading-c32ba3ae840262c3f6cef650de095256.gif"', " ", $c);$c = str_replace(' data-original="', ' src="', $c);return $c;}; section.content

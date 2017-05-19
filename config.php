@@ -21,8 +21,8 @@ if (!isset($options)) {
 // Enable this if you'd like to cache results
 // for 10 minutes. Initially it's best
 // to keep this disabled to make sure everything works
-// as expected.
-$options->caching = true;
+// as expected.1
+$options->caching = false;
 
 // Enable service
 // ----------------------
