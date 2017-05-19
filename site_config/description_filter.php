@@ -199,6 +199,12 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "http://www.ipc.me/")) {
         $title = strip_postfix_to($title, " | iPc.me");
     }
+    else if (startsWith($url, "http://isvincent.pixnet.net/blog/post/")) {
+        $title = strip_postfix_to($title, " @ 學不完．教不停．用不盡 :: 痞客邦 PIXNET ::");
+    }
+    else if (startsWith($url, "http://www.u-acg.com/archives/")) {
+        $title = strip_postfix_to($title, " | U-ACG");
+    }
     else if (startsWith($url, "http://www.netadmin.com.tw/")) {
         $title = strip_postfix_to($title, " - 網管人NetAdmin");
         $title = strip_postfix_to($title, " - ");
