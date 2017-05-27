@@ -81,7 +81,9 @@ require_once 'libraries/simplepie/SimplePieAutoloader.php';
 // assume will always be available.
 require_once 'libraries/simplepie/SimplePie/Core.php';
 
-require_once 'site_config/description_filter.php';
+require_once 'site_config/description_filter_lib.php';
+require_once 'site_config/description_filter_title.php';
+require_once 'site_config/description_filter_description.php';
 
 ////////////////////////////////
 // Load config file
