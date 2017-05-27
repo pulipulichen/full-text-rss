@@ -115,8 +115,7 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         $title = strip_postfix_to($title, " | ");
         $title = strip_postfix_to($title, " | ");
     }
-    else if (startsWith($url, "http://bbs.onyx-international.com.cn")
-            || strpos($url, ".tgbus.com/") > -1) {
+    else if (startsWith($url, "http://bbs.onyx-international.com.cn")) {
         // http://bbs.onyx-international.com.cn/forum.php?mod=viewthread&tid=24528
         // 国产用心的大屏厂家才是真爱 - ONYX新闻 - ONYX BOOX BBS
         $title = strip_postfix_to($title, " - ");
@@ -129,10 +128,10 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         $title = strip_postfix_to($title, " LIFE生活網");
     }
     else if (startsWith($url, "https://ez3c.tw/")) {
-        // Feed Title: 
-        // Feed URL: 
-        // FTR URL: 
-        $title = strip_postfix_to($title, " LIFE生活網");
+        // Feed Title: 哇哇3C日誌
+        // Feed URL: https://easylife.tw/rss
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://easylife.tw/rss&max=2&links=preserve&exc=&submit=Create+Feed
+        $title = strip_postfix_to($title, " :: 哇哇3C日誌");
     }
     else if (startsWith($url, "http://www.eprice.com.tw/")) {
         $title = strip_postfix_to($title, " | ");
@@ -143,98 +142,180 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         // http://youxiputao.com/articles/
         $title = strip_postfix_to($title, " - ");
     }
+    else if (startsWith($_GET["url"], "https://gnn.gamer.com.tw/rss.xml")) {
+        // Feed Title: 巴哈姆特 GNN 新聞網
+        // Feed URL: https://gnn.gamer.com.tw/rss.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://gnn.gamer.com.tw/rss.xml&max=2&links=preserve&exc=&submit=Create+Feed
+        $title = strip_postfix_to($title, " - 巴哈姆特");
+    }
+    else if (startsWith($_GET["url"], "http://www.gameapps.hk/rss")) {
+        // Feed Title: 香港手機遊戲網
+        // Feed URL: http://www.gameapps.hk/rss
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=http://www.gameapps.hk/rss&max=2&links=preserve&exc=&submit=Create+Feed
+        $title = strip_postfix_to($title, " - 香港手機遊戲網 GameApps.hk");
+    }
+    else if (startsWith($_GET["url"], "rss.tgbus.com/hs_news.xml")
+            || strpos($url, ".tgbus.com/") > 0) {
+        // Feed Title: 电玩巴士-hs频道-新闻
+        // Feed URL: rss.tgbus.com/hs_news.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=rss.tgbus.com/hs_news.xml&max=1&links=preserve&exc=&submit=Create+Feed
+        //$title = strip_postfix_to($title, "_炉石传说 魔兽英雄传_电玩巴士炉石传说专区");
+        $title = strip_postfix_to($title, "_");
+        $title = strip_postfix_to($title, "_");
+    }
+    else if (startsWith($_GET["url"], "www.reddit.com/r/googleplaydeals/.rss")) {
+        // Feed Title: Google Play Deals
+        // ATOM URL: http://www.reddit.com/r/googleplaydeals/.rss
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=exp-full-text-rss-2013.dlll.nccu.edu.tw%2Ffull-text-rss%2Fatom2rss%2Findex.php%3Fatom%3Dhttp%3A%2F%2Fwww.reddit.com%2Fr%2Fgoogleplaydeals%2F.rss&max=10&links=preserve&exc=&submit=Create+Feed
+        $title = $item->get_title();
+        $title = strip_postfix_to($title, " : googleplaydeals");
+        
+        if (strpos($title, " Free)") > 0) {
+            $title = '[Free]'.$title;
+        }
+    }
+    else if (startsWith($_GET["url"], "ccsx.tw/feed/")) {
+        // Feed Title: CCSX Makes ACG NEWS 支店
+        // ATOM URL: http://ccsx.tw/feed/
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=ccsx.tw%2Ffeed%2F&max=10&links=preserve&exc=&submit=Create+Feed
+        $title = strip_prefix_to($title, "–");
+        $title = trim($title);
+    }
+    else if (startsWith($_GET["url"], "www.hearthpwn.com/news.rss")) {
+        // Feed Title: Hearthstone News from HearthPwn
+        // ATOM URL: www.hearthpwn.com/news.rss
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=www.hearthpwn.com/news.rss&max=2&links=preserve&exc=&submit=Create+Feed
+        $title = strip_prefix_to($title, " - News");
+    }
     
     // -------------------
     // 所有用FB-RSS的都要經過這個檢查
     if (startsWith($_GET["url"], "https://fbrss.com/feed/")) {
-        
-        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
-        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_141456499343573.xml
-        // 
-        $title = htmlspecialchars_decode($item->get_title());
-        if ($title === "") {
-            $title = htmlspecialchars_decode($item->get_description());
-        }
-        if (startsWith($title, "Photo - ")) {
-            $len = strlen("Photo - ");
-            $title = substr($title, $len);
-        }
-        if (startsWith($title, "Video - ")) {
-            $title = substr($title, strlen("Video - "));
-        }
-        if (startsWith($title, "Group wall post by ")) {
-            $title = substr($title, strlen("Group wall post by "));
-        }
-        
-        $title = trim($title);
-        if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml") {
-            // 黑特政大 FB
-            // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml
-            
-            $title = strip_prefix_to($title, "\n");
-            $title = strip_postfix_to($title, "Submitted:");
-        }
-        else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml") {
-            // Feed Title: FB-RSS feed for 4Gamers 
-            // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml
-            // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml&max=1&links=preserve&exc=&submit=Create+Feed
-            
-            
-            $desc = $item->get_description();
-            $needle = '<a href="https://www.4gamers.com.tw/news/detail/';
-            //echo "[[[[" . $desc . "]]]]";
-            if (strrpos($desc, $needle) !== FALSE) {
-                $pos = strrpos($desc, $needle);
-                $title = substr($desc, $pos);
-                $title = substr($title, strpos($title, ">") + 1);
-                $title = substr($title, 0, strrpos($title, "<"));
-                $title = strip_postfix_to($title, "|");
-            }
-            
-            while (strpos($title, "——") !== FALSE) {
-                $title = str_replace("——", "—", $title);
-            }
-        }
+        $title = fb_rss_filter_by_url($title, $url, $item, $html);
     }
     
     // -------------------------
     // 所有用wallflux的都要經過這個檢查
     if (startsWith($_GET["url"], "https://www.wallflux.com/feed/")) {
-        
-        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
-        // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_141456499343573.xml
-        // 
-        $title = htmlspecialchars_decode($item->get_title());
-        if ($title === "") {
-            $title = htmlspecialchars_decode($item->get_description());
-        }
-        if (startsWith($title, "Photo - ")) {
-            $len = strlen("Photo - ");
-            $title = substr($title, $len);
-        }
-        if (startsWith($title, "Photo: ")) {
-            $len = strlen("Photo: ");
-            $title = substr($title, $len);
-        }
-        if (startsWith($title, "Link: ")) {
-            $len = strlen("Link: ");
-            $title = substr($title, $len);
-        }
-        if (startsWith($title, "Video - ")) {
-            $title = substr($title, strlen("Video - "));
-        }
-        if (startsWith($title, "Group wall post by ")) {
-            $title = substr($title, strlen("Group wall post by "));
-        }
-        
-        $desc = $item->get_description();
-        $pos = strpos($desc, "'s wall: ");
-        if ($pos > 0) {
-            $pos = $pos + strlen("'s wall: ");
-            $title = substr($desc, $pos);
-        }
+        $title = wallflux_filter_by_url($title, $url, $item, $html);
     }
     
     
     return trim($title);
+}
+
+// ----------------------------------
+
+function fb_rss_filter_by_url($title, $url, $item, $html) {
+    // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
+    // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_141456499343573.xml
+    // 
+    $title = htmlspecialchars_decode($item->get_title());
+    $title = trim($title);
+
+    if ($title === "") {
+        $title = htmlspecialchars_decode($item->get_description());
+        $title = trim($title);
+    }
+    if (startsWith($title, "Photo - ")) {
+        $len = strlen("Photo - ");
+        $title = substr($title, $len);
+        $title = trim($title);
+    }
+    if (startsWith($title, "Video - ")) {
+        $title = substr($title, strlen("Video - "));
+        $title = trim($title);
+    }
+    if (startsWith($title, "Group wall post by ")) {
+        $title = substr($title, strlen("Group wall post by "));
+        $title = trim($title);
+    }
+
+    if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml") {
+        // Feed Title: 黑特政大 FB
+        // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_1417505918524114.xml
+        // FTR URL: 
+
+        $title = str_replace("<br>", "\n", $title);
+        $title = strip_prefix_to($title, "\n");
+        $title = strip_postfix_to($title, "Submitted:");
+    }
+    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml") {
+        // Feed Title: FB-RSS feed for 4Gamers 
+        // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml&max=1&links=preserve&exc=&submit=Create+Feed
+
+
+        $desc = $item->get_description();
+        $needle = '<a href="https://www.4gamers.com.tw/news/detail/';
+        //echo "[[[[" . $desc . "]]]]";
+        if (strrpos($desc, $needle) !== FALSE) {
+            $pos = strrpos($desc, $needle);
+            $title = substr($desc, $pos);
+            $title = substr($title, strpos($title, ">") + 1);
+            $title = substr($title, 0, strrpos($title, "<"));
+            $title = strip_postfix_to($title, "|");
+        }
+
+        while (strpos($title, "——") !== FALSE) {
+            $title = str_replace("——", "—", $title);
+        }
+    }
+    if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_863393060409175.xml") {
+        // Feed Title: 靠北圖書館 [FB]
+        // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_863393060409175.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_863393060409175.xml&max=2&links=preserve&exc=&submit=Create+Feed
+
+        $title = str_replace("<br>", "\n", $title);
+        $title = strip_prefix_to($title, "\n");
+        $title = strip_postfix_to($title, "Submitted:");
+
+        $title = trim($title);
+        if (strpos($title, "#") === 0) {
+            $title = substr($title, strpos($title, " ") + 1);
+        }
+        //echo "[". strpos($title, "#") ."[" . $title ."]]]";
+    }
+    
+    return $title;
+}
+
+// ----------------------------------
+
+function wallflux_filter_by_url($title, $url, $item, $html) {
+
+    // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
+    // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_141456499343573.xml
+    // 
+    $title = htmlspecialchars_decode($item->get_title());
+    if ($title === "") {
+        $title = htmlspecialchars_decode($item->get_description());
+    }
+    if (startsWith($title, "Photo - ")) {
+        $len = strlen("Photo - ");
+        $title = substr($title, $len);
+    }
+    if (startsWith($title, "Photo: ")) {
+        $len = strlen("Photo: ");
+        $title = substr($title, $len);
+    }
+    if (startsWith($title, "Link: ")) {
+        $len = strlen("Link: ");
+        $title = substr($title, $len);
+    }
+    if (startsWith($title, "Video - ")) {
+        $title = substr($title, strlen("Video - "));
+    }
+    if (startsWith($title, "Group wall post by ")) {
+        $title = substr($title, strlen("Group wall post by "));
+    }
+
+    $desc = $item->get_description();
+    $pos = strpos($desc, "'s wall: ");
+    if ($pos > 0) {
+        $pos = $pos + strlen("'s wall: ");
+        $title = substr($desc, $pos);
+    }
+    
+    return $title;
 }

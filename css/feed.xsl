@@ -16,6 +16,8 @@
       <p>You are viewing an auto-generated full-text <acronym title="Really Simple Syndication">RSS</acronym> feed. RSS feeds allow you to stay up to date with the latest news and features you want from websites. To subscribe to it, you will need a News Reader or other similar device.</p>
       <p>Below is the latest content available from this feed.</p>
 	  <a style="cursor:pointer;text-decoration:underline" onclick="window.open('https://feedly.com/i/discover/sources/search/' + encodeURIComponent(location.href), '_self');">Send RSS feed url to Feedly</a>
+          |
+          <a style="cursor:pointer;text-decoration:underline" href="/">Back</a>
     </div>
     
     <div id="content">

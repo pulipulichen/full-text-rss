@@ -97,7 +97,28 @@ function filter_description_by_url($html, $url, $item, $has_extract) {
     else if (startsWith($url, "http://www.eprice.com.tw/")) {
         $html = str_replace('.tmp" data-original="', '" data-original="', $html);
     }
-    else if (startsWith($_GET["url"], "https://fbrss.com/feed/")) {
+    else if (startsWith($_GET["url"], "www.reddit.com/r/googleplaydeals/.rss")) {
+        // Feed Title: Google Play Deals
+        // ATOM URL: http://www.reddit.com/r/googleplaydeals/.rss
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=exp-full-text-rss-2013.dlll.nccu.edu.tw%2Ffull-text-rss%2Fatom2rss%2Findex.php%3Fatom%3Dhttp%3A%2F%2Fwww.reddit.com%2Fr%2Fgoogleplaydeals%2F.rss&max=10&links=preserve&exc=&submit=Create+Feed
+        
+        // 抓取 <a>
+        /*
+        $pos = strpos($html, "https://play.google.com/store/apps/details?id=");
+        $link = "";
+        if ($pos > 0) {
+            $link = substr($html, $pos);
+            $link = substr($link, 0, strpos($link, '"'));
+        }
+        
+        $html = '<h1><a href="'.$link.'" target="_blank">Google Play: ' . $item->get_title() . '</a></h1>'
+                . get_original_html($item);
+        */
+        $html = get_original_html($item);
+        //echo "11212";
+    }
+    
+    if (startsWith($_GET["url"], "https://fbrss.com/feed/")) {
         // https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_543966649035348.xml
         $original_html = htmlspecialchars_decode($item->get_description());
         
@@ -106,5 +127,10 @@ function filter_description_by_url($html, $url, $item, $has_extract) {
         }
     }
     
+    
     return $html;
+}
+
+function get_original_html ($item) {
+    return htmlspecialchars_decode($item->get_description());
 }

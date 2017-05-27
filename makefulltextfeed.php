@@ -84,6 +84,8 @@ require_once 'libraries/simplepie/SimplePie/Core.php';
 require_once 'site_config/description_filter_lib.php';
 require_once 'site_config/description_filter_title.php';
 require_once 'site_config/description_filter_description.php';
+require_once 'site_config/filter_skip_item.php';
+require_once 'site_config/filter_permalink.php';
 
 ////////////////////////////////
 // Load config file
@@ -534,62 +536,7 @@ foreach ($items as $key => $item) {
     //$permalink = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
     $permalink = str_replace('%3A', ':', $permalink);
     
-    /**
-     * @version 20140626 布丁
-     * 針對incognitomail特殊的設置
-     */
-    if (strpos($permalink, "http://www.incognitomail.com/?m=") === 0) {
-        $a = substr($url, strpos($url, "&a=")+3);
-        //echo $a;
-        $permalink = $permalink . $a;
-    }
-    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_169635866411766.xml") {
-        /**
-         * @author Pulipuli Chen <pulipuli.chen@gmail.com> 20170423
-         * FB-RSS feed for 原價屋coolpc
-         */
-        $desc = $item->get_description();
-        $pos1 = strpos($desc, "http://www.coolpc.com.tw/phpBB2/viewtopic.php");
-        $pos2 = strpos($desc, "<br", $pos1+2);
-        if ($pos1 > 0 && $pos2 > 0) {
-            $permalink = substr($desc, $pos1, $pos2);
-        }
-        else {
-            preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $desc, $match);
-            if (count($match) > 0 && count($match[0]) > 0 && isset($match[0][0])) {
-                for ($u = count($match[0])-1; $u >=0; $u--) {
-                    $u_url = $match[0][$u];
-                    if (strpos($u_url, "https://www.facebook.com/") === FALSE) {
-                        $permalink = $u_url;
-                        break;
-                    }
-                }
-            }
-        }
-        //echo "[" . $pos1 ."-" . $pos2 ."]";
-        //echo $permalink;
-        // $item->get_permalink()
-    }
-    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_137698833067234.xml") {
-        /**
-         * @author Pulipuli Chen <pulipuli.chen@gmail.com> 20170519
-         * FB-RSS 資訊視覺化
-         */
-        //echo "11212";
-        $desc = $item->get_description();
-        preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $desc, $match);
-        if (count($match) > 0 && count($match[0]) > 0 && isset($match[0][0])) {
-            //echo "match!!!!";
-            for ($u = count($match[0])-1; $u >=0; $u--) {
-                $u_url = $match[0][$u];
-                if (strpos($u_url, "https://www.facebook.com/data.visualize/") === FALSE) {
-                    $permalink = $u_url;
-                    break;
-                }
-            }
-            //echo $permalink;
-        }
-    }
+    $permalink = filter_permalink($permalink, $item, $url);
     
     //echo $permalink;
     // validateUrl() strips non-ascii characters
@@ -629,23 +576,11 @@ foreach ($items as $key => $item) {
         //if ($item->get_title() === "RSS feeds for Facebook pages and group" ) {
         //    continue;
         //}
-        
     
-    if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") &&
-            (trim($item->get_title()) === "RSS feeds for Facebook pages and group"
-            || trim($item->get_title()) === "Wallflux Atom Feed Demonstration"
-            || trim($item->get_title()) === "") ) {
+    if (filter_skip_item($item) === false) {
         continue;
     }
-    else if (startsWith($_GET["url"], "https://www.wallflux.com/atom/") 
-            && strpos($item->get_title(), " - Wallflux Group info") > 0) {
-        continue;
-    }
-    else if (startsWith($_GET["url"], "https://www.wallflux.com/feed/") 
-            && (strpos($item->get_title(), "Wallflux") > -1 || strpos($item->get_description(), "Wallflux") > -1)
-            ) {
-        continue;
-    }
+    
     //echo "[" . $item->get_title() . "]";
         
         /**

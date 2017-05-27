@@ -109,3 +109,7 @@ Although we don't have examples in other programming languages, the essential st
 # OpenVZ Template
 debian-7-full-text-rss_i386.tar.gz
 https://drive.google.com/open?id=0B5UXWzdIPpm0VzJyV29GRklubkE
+
+# ATOM to RSS
+apt-get install php5-xsl -y
+/atom2rss/?atom=[URL]
