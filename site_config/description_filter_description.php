@@ -123,7 +123,19 @@ function filter_description_by_url($html, $url, $item, $has_extract) {
         $original_html = htmlspecialchars_decode($item->get_description());
         
         if ($has_extract === true) {
-            $html = $original_html . "<br /><br />" . $html;
+            $html = $original_html . "<br />\n<hr />\n<br />\n" . $html;
+        }
+    }
+    
+    if (startsWith($_GET["url"], "www.plurk.com/")) {
+        // Feed Title: ckhung0
+        // Feed URL: http://www.plurk.com/ckhung0.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=www.plurk.com/ckhung0.xml&max=2&links=preserve&exc=&submit=Create+Feed
+        
+        $original_html = htmlspecialchars_decode($item->get_description());
+        
+        if ($has_extract === true) {
+            $html = $original_html . "<br />\n<hr />\n<br />\n" . $html;
         }
     }
     

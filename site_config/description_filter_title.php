@@ -200,6 +200,18 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         $title = wallflux_filter_by_url($title, $url, $item, $html);
     }
     
+    if (startsWith($_GET["url"], "www.plurk.com/")) {
+        $title = plurk_filter_by_url($title, $url, $item, $html);
+    }
+    
+    // 如果$title沒有資料
+    if ($title === NULL || trim($title) === "") {
+        $title = htmlspecialchars_decode($item->get_description());
+        if (strlen($title) > 100) {
+            $title = substr($title, 0, 100) . "...";
+        }
+    }
+    
     
     return trim($title);
 }
@@ -244,22 +256,47 @@ function fb_rss_filter_by_url($title, $url, $item, $html) {
         // Feed Title: FB-RSS feed for 4Gamers 
         // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml
         // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_175159599316564.xml&max=1&links=preserve&exc=&submit=Create+Feed
-
-
-        $desc = $item->get_description();
-        $needle = '<a href="https://www.4gamers.com.tw/news/detail/';
-        //echo "[[[[" . $desc . "]]]]";
-        if (strrpos($desc, $needle) !== FALSE) {
-            $pos = strrpos($desc, $needle);
-            $title = substr($desc, $pos);
-            $title = substr($title, strpos($title, ">") + 1);
-            $title = substr($title, 0, strrpos($title, "<"));
+        $changed_title = filter_title_from_a_tag($title, $item, '<a href="https://www.4gamers.com.tw/news/detail/');
+        if ($changed_title !== $title) {
+            $title = $changed_title;
             $title = strip_postfix_to($title, "|");
         }
 
         while (strpos($title, "——") !== FALSE) {
             $title = str_replace("——", "—", $title);
         }
+    }
+    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_236436558020.xml") {
+        // Feed Title: FB-RSS feed for 天瓏資訊圖書
+        // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_236436558020.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_236436558020.xml&max=2&links=preserve&exc=&submit=Create+Feed
+        $changed_title = filter_title_from_a_tag($title, $item, '<a href="https://www.tenlong.com.tw/products/');
+        if ($changed_title !== $title) {
+            $title = $changed_title;
+            $title = strip_prefix_to($title, " | ");
+        }
+    }
+    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_158495994283.xml") {
+        // Feed Title: 數位時代 FB
+        // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_158495994283.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_158495994283.xml&max=2&links=preserve&exc=&submit=Create+Feed
+        $changed_title = filter_title_from_a_tag($title, $item, '<a href="https://www.bnext.com.tw/');
+        if ($changed_title !== $title) {
+            $title = $changed_title;
+            $title = strip_postfix_to($title, "｜數位時代");
+        }
+    }
+    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_6723083591.xml") {
+        // Feed Title: FB-RSS feed for Ubuntu
+        // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_6723083591.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https%3A%2F%2Ffbrss.com%2Ffeed%2F2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_6723083591.xml&max=2&links=preserve&exc=&submit=Create+Feed
+        $title = filter_title_from_a_tag($title, $item);
+    }
+    else if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_119279178101235.xml") {
+        // Feed Title: Will 保哥的技術交流中心
+        // Feed URL: https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_119279178101235.xml
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_119279178101235.xml&max=2&links=preserve&exc=&submit=Create+Feed
+        $title = filter_title_from_a_tag($title, $item);
     }
     if ($_GET["url"] === "https://fbrss.com/feed/2ea5083c0ced7a05bb4ab03f65ba32c12fb6e0b8_863393060409175.xml") {
         // Feed Title: 靠北圖書館 [FB]
@@ -317,5 +354,27 @@ function wallflux_filter_by_url($title, $url, $item, $html) {
         $title = substr($desc, $pos);
     }
     
+    return $title;
+}
+
+function plurk_filter_by_url($title, $url, $item, $html) {
+    // Feed Title: ckhung0
+    // Feed URL: http://www.plurk.com/ckhung0.xml
+    // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=www.plurk.com/ckhung0.xml&max=2&links=preserve&exc=&submit=Create+Feed
+    $title = filter_title_from_a_tag($title, $item);
+    
+    return $title;
+}
+
+function filter_title_from_a_tag($title, $item, $needle = '<a href="http') {
+    $desc = htmlspecialchars_decode($item->get_description());
+    //$needle = '<a href="https://www.4gamers.com.tw/news/detail/';
+    //echo "[[[[" . $desc . "]]]]";
+    if (strrpos($desc, $needle) !== FALSE) {
+        $pos = strrpos($desc, $needle);
+        $title = substr($desc, $pos);
+        $title = substr($title, strpos($title, ">") + 1);
+        $title = substr($title, 0, strpos($title, "<"));
+    }
     return $title;
 }
