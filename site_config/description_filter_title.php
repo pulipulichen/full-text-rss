@@ -91,6 +91,12 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "http://www.ipc.me/")) {
         $title = strip_postfix_to($title, " | iPc.me");
     }
+    else if ($_GET["url"] === "https://www.oschina.net/news/rss") {
+        // Feed Title: 开源中国社区最新新闻
+        // Feed URL: https://www.oschina.net/news/rss
+        // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=https%3A%2F%2Fwww.oschina.net%2Fnews%2Frss&max=2&links=preserve&exc=&submit=Create+Feed
+        $title = strip_postfix_to($title, " - ");
+    }
     else if (startsWith($url, "http://isvincent.pixnet.net/blog/post/")) {
         $title = strip_postfix_to($title, " @ 學不完．教不停．用不盡 :: 痞客邦 PIXNET ::");
     }
