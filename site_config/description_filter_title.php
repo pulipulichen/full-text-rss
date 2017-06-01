@@ -88,8 +88,24 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "https://www.damanwoo.com/node/")) {
         $title = strip_postfix_to($title, " | 大人物");
     }
+    else if (startsWith($url, "https://data-sci.info/")) {
+        $title = strip_postfix_to($title, " | Learning by Hacking");
+    }
+    else if (startsWith($url, "http://tech.tgbus.com/")) {
+        // Feed Title: Hi科技 - 电玩巴士
+        // Feed URL: 
+        // FTR URL: http://tech.tgbus.com/201705/20170530221809.shtml
+        $title = strip_postfix_to($title, " - ");
+        $title = strip_postfix_to($title, " - ");
+    }
     else if (startsWith($url, "http://www.ipc.me/")) {
         $title = strip_postfix_to($title, " | iPc.me");
+    }
+    else if (startsWith($url, "http://www.iplaysoft.com/")) {
+        // Feed Title: 异次元软件下载
+        // Feed URL: 
+        // FTR URL: http://www.iplaysoft.com/eagle.html
+        $title = strip_postfix_to($title, " | ");
     }
     else if ($_GET["url"] === "https://www.oschina.net/news/rss") {
         // Feed Title: 开源中国社区最新新闻
