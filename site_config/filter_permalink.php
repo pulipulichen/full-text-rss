@@ -1,11 +1,11 @@
 <?php
 
 function filter_permalink($permalink, $item, $url) {
-    /**
-     * @version 20140626 布丁
-     * 針對incognitomail特殊的設置
-     */
     if (strpos($permalink, "http://www.incognitomail.com/?m=") === 0) {
+        /**
+         * @version 20140626 布丁
+         * 針對incognitomail特殊的設置
+         */
         $a = substr($url, strpos($url, "&a=")+3);
         //echo $a;
         $permalink = $permalink . $a;
@@ -42,7 +42,8 @@ function filter_permalink($permalink, $item, $url) {
             //echo $permalink;
         }
     }
-    else if (startsWith($_GET["url"], "www.reddit.com/r/googleplaydeals/.rss")) {
+    else if (strpos($_GET["url"], "www.reddit.com") !== FALSE
+            && strpos($_GET["url"], "googleplaydeals") !== FALSE ) {
         // Feed Title: Google Play Deals
         // ATOM URL: http://www.reddit.com/r/googleplaydeals/.rss
         // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=exp-full-text-rss-2013.dlll.nccu.edu.tw%2Ffull-text-rss%2Fatom2rss%2Findex.php%3Fatom%3Dhttp%3A%2F%2Fwww.reddit.com%2Fr%2Fgoogleplaydeals%2F.rss&max=10&links=preserve&exc=&submit=Create+Feed

@@ -190,9 +190,9 @@ class HumbleHttpAgent
 			$test = filter_var(strtr($url, '-', '_'), FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED);
 		}
 		if ($test !== false && $test !== null && preg_match('!^https?://!', $url)) {
-			return $url;
+                    return $url;
 		} else {
-			return false;
+                    return false;
 		}
 	}
 	
@@ -200,15 +200,20 @@ class HumbleHttpAgent
 		$this->fetchAllOnce($urls, $isRedirect=false);
 		$redirects = 0;
 		while (!empty($this->redirectQueue) && ++$redirects <= $this->maxRedirects) {
-			$this->debug("Following redirects #$redirects...");
-			$this->fetchAllOnce($this->redirectQueue, $isRedirect=true);
+                    $this->debug("Following redirects #$redirects...");
+                    $this->fetchAllOnce($this->redirectQueue, $isRedirect=true);
 		}
 	}
 	
 	// fetch all URLs without following redirects
 	public function fetchAllOnce(array $urls, $isRedirect=false) {
-		if (!$isRedirect) $urls = array_unique($urls);
-		if (empty($urls)) return;
+		if (!$isRedirect) {
+                    $urls = array_unique($urls);
+                }
+                if (empty($urls)) {
+                    return;
+                    
+                }
 		
 		//////////////////////////////////////////////////////
 		// parallel (HttpRequestPool)
@@ -220,7 +225,10 @@ class HumbleHttpAgent
 					$subset = array_splice($urls, 0, $this->maxParallelRequests);
 					$pool = new HttpRequestPool();
 					foreach ($subset as $orig => $url) {
-						if (!$isRedirect) $orig = $url;
+						if (!$isRedirect) {
+                                                    $orig = $url;
+                                                }
+                                                //if (is_in_blacklist($url)) { continue; }
 						unset($this->redirectQueue[$orig]);
 						$this->debug("...$url");
 						if (!$isRedirect && isset($this->requests[$url])) {
@@ -542,6 +550,10 @@ class HumbleHttpAgent
 	}
 	
 	public function get($url, $remove=false, $gzdecode=true) {
+                if (is_in_blacklist($url) === true) {
+                    return null;
+                }
+            
 		$url = "$url";
 		if (isset($this->requests[$url]) && isset($this->requests[$url]['body'])) {
 			$this->debug("URL already fetched - in memory ($url, effective: {$this->requests[$url]['effective_url']})");

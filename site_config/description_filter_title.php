@@ -185,15 +185,18 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         $title = strip_postfix_to($title, "_");
         $title = strip_postfix_to($title, "_");
     }
-    else if (startsWith($_GET["url"], "www.reddit.com/r/googleplaydeals/.rss")) {
+    else if (strpos($_GET["url"], "www.reddit.com") !== FALSE
+            && strpos($_GET["url"], "googleplaydeals") !== FALSE) {
         // Feed Title: Google Play Deals
         // ATOM URL: http://www.reddit.com/r/googleplaydeals/.rss
         // FTR URL: http://exp-full-text-rss-2013.dlll.nccu.edu.tw/full-text-rss/makefulltextfeed.php?url=exp-full-text-rss-2013.dlll.nccu.edu.tw%2Ffull-text-rss%2Fatom2rss%2Findex.php%3Fatom%3Dhttp%3A%2F%2Fwww.reddit.com%2Fr%2Fgoogleplaydeals%2F.rss&max=10&links=preserve&exc=&submit=Create+Feed
         $title = $item->get_title();
         $title = strip_postfix_to($title, " : googleplaydeals");
         
-        if (strpos($title, " Free)") > 0) {
-            $title = '[Free]'.$title;
+        if (strpos($title, " Free)") > -1 
+                || strpos($title, " - FREE -") > 0
+                || strpos($title, "0.00)") > 0) {
+            $title = '[FREE]'.$title;
         }
     }
     else if (startsWith($_GET["url"], "ccsx.tw/feed/")) {

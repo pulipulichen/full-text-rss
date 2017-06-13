@@ -86,6 +86,7 @@ require_once 'site_config/description_filter_title.php';
 require_once 'site_config/description_filter_description.php';
 require_once 'site_config/filter_skip_item.php';
 require_once 'site_config/filter_permalink.php';
+require_once 'site_config/permalink_blacklist.php';
 
 ////////////////////////////////
 // Load config file
@@ -542,7 +543,7 @@ foreach ($items as $key => $item) {
     // validateUrl() strips non-ascii characters
     // simplepie already sanitizes URLs so let's not do it again here.
     //$permalink = $http->validateUrl($permalink);
-
+    
     
     if ($permalink) {
         $urls_sanitized[] = $permalink;
@@ -557,253 +558,261 @@ $http->fetchAll($urls_sanitized);
 $item_count = 0;
 
 foreach ($items as $key => $item) {
-	$do_content_extraction = true;
-	$extract_result = false;
-	$text_sample = null;
-	$permalink = $urls[$key];
-        //print_r($urls);
-        
-        /**
-         * 設定偵測用的預設網址
-         * @version 20140422 Pulipuli Chen
-         */
-        //$permalink = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
-        //$permalink = "http://chinese.engadget.com/2014/04/22/snap-phone-attachment-connector-indiegogo/";
-        //$permalink = "http://www.linuxeden.com/html/itnews/20140322/149803.html";
-        //$permalink = "http://walker-a.com/archives/2296";
-        //$permalink = "http://www.linuxeden.com/html/news/20140125/147867.html";
-        
-        //if ($item->get_title() === "RSS feeds for Facebook pages and group" ) {
-        //    continue;
-        //}
+    $do_content_extraction = true;
+    $extract_result = false;
+    $text_sample = null;
+    $permalink = $urls[$key];
+    //print_r($urls);
+
+    /**
+     * 設定偵測用的預設網址
+     * @version 20140422 Pulipuli Chen
+     */
+    //$permalink = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
+    //$permalink = "http://chinese.engadget.com/2014/04/22/snap-phone-attachment-connector-indiegogo/";
+    //$permalink = "http://www.linuxeden.com/html/itnews/20140322/149803.html";
+    //$permalink = "http://walker-a.com/archives/2296";
+    //$permalink = "http://www.linuxeden.com/html/news/20140125/147867.html";
+
+    //if ($item->get_title() === "RSS feeds for Facebook pages and group" ) {
+    //    continue;
+    //}
     
-    if (filter_skip_item($item) === false) {
+    // 略過此item
+    if (filter_skip_item($item, $permalink) === false) {
         continue;
     }
     
+    // 不抽取黑名單的內容
+    $is_in_blacklist = is_in_blacklist($permalink);
     //echo "[" . $item->get_title() . "]";
         
-        /**
-         * 如果有自定義的網址，則轉換為該網址
-         * @author Pulipuli Chen 20140501
-         */
-        if (isset($custom_permalink)) {
-            $permalink = $custom_permalink;
-        }
-        
-        //echo "[".$permalink."]";
-        
-	$newitem = $output->createNewItem();
-        $title = htmlspecialchars_decode($item->get_title());
-        $origin_title = $title;
-        
-        if (function_exists('mb_convert_encoding')) {
-            /*
-            if (key_exists($url, $options->convert_encoding)) {
-                try {
-                    
-                    $encoding = $options->convert_encoding[$url];
-                    //$title = iconv($encoding, "UTF-8//IGNORE", $title);
-                    $title = mb_convert_encoding($title, $encoding, "UTF-8//IGNORE");
-                    //$title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
-                    $title = $encoding.$title;
-                }
-                catch (Exception $e) {
-                    $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
-                }
+    /**
+     * 如果有自定義的網址，則轉換為該網址
+     * @author Pulipuli Chen 20140501
+     */
+    if (isset($custom_permalink)) {
+        $permalink = $custom_permalink;
+    }
+
+    //echo "[".$permalink."]";
+
+    $newitem = $output->createNewItem();
+    $title = htmlspecialchars_decode($item->get_title());
+    $origin_title = $title;
+
+    if (function_exists('mb_convert_encoding')) {
+        /*
+        if (key_exists($url, $options->convert_encoding)) {
+            try {
+
+                $encoding = $options->convert_encoding[$url];
+                //$title = iconv($encoding, "UTF-8//IGNORE", $title);
+                $title = mb_convert_encoding($title, $encoding, "UTF-8//IGNORE");
+                //$title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
+                $title = $encoding.$title;
             }
-            else {
+            catch (Exception $e) {
                 $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
             }
-            */
+        }
+        else {
             $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
         }
+        */
+        $title = mb_convert_encoding($title, 'HTML-ENTITIES', "UTF-8");
+    }
+    if (is_null($title) || $title === "") {
+        $title = $origin_title;
+    }
         
         
         
-        if (is_null($title) || $title === "") {
-            $title = $origin_title;
+    if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
+        if ($permalink !== false) {
+                $newitem->setLink('http://fivefilters.org/content-only/redirect.php?url='.urlencode($permalink));
+        } else {
+                $newitem->setLink('http://fivefilters.org/content-only/redirect.php?url='.urlencode($item->get_permalink()));
         }
+    } else {
+        if ($permalink !== false) {
+                $newitem->setLink($permalink);
+        } else {
+                $newitem->setLink($item->get_permalink());
+        }
+    }
+    // TODO: Allow error codes - some sites return correct content with error status
+    // e.g. prospectmagazine.co.uk returns 403
+    //if ($permalink && ($response = $http->get($permalink, true)) && $response['status_code'] < 300) {
         
         
-        
-	if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
-		if ($permalink !== false) {
-			$newitem->setLink('http://fivefilters.org/content-only/redirect.php?url='.urlencode($permalink));
-		} else {
-			$newitem->setLink('http://fivefilters.org/content-only/redirect.php?url='.urlencode($item->get_permalink()));
-		}
-	} else {
-		if ($permalink !== false) {
-			$newitem->setLink($permalink);
-		} else {
-			$newitem->setLink($item->get_permalink());
-		}
-	}
-	// TODO: Allow error codes - some sites return correct content with error status
-	// e.g. prospectmagazine.co.uk returns 403
-	//if ($permalink && ($response = $http->get($permalink, true)) && $response['status_code'] < 300) {
-        
-        
-        //echo "1: " . $permalink . "\n\n";
-	if ($permalink && ($response = $http->get($permalink, true)) && ($response['status_code'] < 300 || $response['status_code'] > 400)) {
-		$effective_url = $response['effective_url'];
-                //echo $effective_url;
-                //$effective_url = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
-		if (!url_allowed($effective_url)) {
-                    continue;
+    //echo "1: " . $permalink . "\n\n";
+    if ($permalink 
+            && $is_in_blacklist === false 
+            && ($response = $http->get($permalink, true)) 
+            && ($response['status_code'] < 300 || $response['status_code'] > 400)) {
+        $effective_url = $response['effective_url'];
+        //echo $effective_url;
+        //$effective_url = "http://chinese.engadget.com/2014/04/21/nintendo-game-boy-25th-anniversary/";
+        if (!url_allowed($effective_url)) {
+            continue;
+        }
+        // check if action defined for returned Content-Type
+        $type = null;
+        if (preg_match('!^Content-Type:\s*(([-\w]+)/([-\w\+]+))!im', $response['headers'], $match)) {
+            // look for full mime type (e.g. image/jpeg) or just type (e.g. image)
+            $match[1] = strtolower(trim($match[1]));
+            $match[2] = strtolower(trim($match[2]));
+            foreach (array($match[1], $match[2]) as $_mime) {
+                if (isset($options->content_type_exc[$_mime])) {
+                    $type = $match[1];
+                    $_act = $options->content_type_exc[$_mime]['action'];
+                    $_name = $options->content_type_exc[$_mime]['name'];
+                    if ($_act == 'exclude') {
+                        continue 2; // skip this feed item entry
+                    } elseif ($_act == 'link') {
+                        if ($match[2] == 'image') {
+                            $html = "<a href=\"$effective_url\"><img src=\"$effective_url\" alt=\"$_name\" /></a>";
+                        } else {
+                            $html = "<a href=\"$effective_url\">Download $_name</a>";
+                        }
+                        $title = $_name;
+                        $do_content_extraction = false;
+                        break;
+                    }
                 }
-		// check if action defined for returned Content-Type
-		$type = null;
-		if (preg_match('!^Content-Type:\s*(([-\w]+)/([-\w\+]+))!im', $response['headers'], $match)) {
-			// look for full mime type (e.g. image/jpeg) or just type (e.g. image)
-			$match[1] = strtolower(trim($match[1]));
-			$match[2] = strtolower(trim($match[2]));
-			foreach (array($match[1], $match[2]) as $_mime) {
-				if (isset($options->content_type_exc[$_mime])) {
-					$type = $match[1];
-					$_act = $options->content_type_exc[$_mime]['action'];
-					$_name = $options->content_type_exc[$_mime]['name'];
-					if ($_act == 'exclude') {
-						continue 2; // skip this feed item entry
-					} elseif ($_act == 'link') {
-						if ($match[2] == 'image') {
-							$html = "<a href=\"$effective_url\"><img src=\"$effective_url\" alt=\"$_name\" /></a>";
-						} else {
-							$html = "<a href=\"$effective_url\">Download $_name</a>";
-						}
-						$title = $_name;
-						$do_content_extraction = false;
-						break;
-					}
-				}
-			}
-			unset($_mime, $_act, $_name, $match);
-		}
-		if ($do_content_extraction) {
-			$html = $response['body'];
-                        //echo "[" . $html .  "]";
-			// remove strange things
-			$html = str_replace('</[>', '', $html);
-			$html = convert_to_utf8($html, $response['headers']);
-                        //echo "[" . $html .  "]";
-                        
-			if ($auto_extract) {
-				// check site config for single page URL - fetch it if found
-				if ($single_page_response = getSinglePage($item, $html, $effective_url)) {
-					$html = $single_page_response['body'];
-					// remove strange things
-					$html = str_replace('</[>', '', $html);	
-					$html = convert_to_utf8($html, $single_page_response['headers']);
-					$effective_url = $single_page_response['effective_url'];
-					unset($single_page_response);
-				}
-				$extract_result = $extractor->process($html, $effective_url);
-				$readability = $extractor->readability;
-				$content_block = ($extract_result) ? $extractor->getContent() : null;
-                                //echo "content_block: [" . $content_block->innerHTML . "] \n\n";
-				$title = ($extract_result) ? $extractor->getTitle() : '';
-			} else {
-				$readability = new Readability($html, $effective_url);
-				// content block is entire document (for now...)
-				$content_block = $readability->dom;
-                                //echo $content_block->innerHTML;
-				//TODO: get title
-				$title = '';
-			}
-                        //echo "[" . $content_block . "]" ;
-		}
-		// use extracted title for both feed and item title if we're using single-item dummy feed
-		if ($isDummyFeed) {
-                    $output->setTitle($title);
-                    $newitem->setTitle($title);
-		}
-		if ($do_content_extraction) {		
-			if ($extract_pattern && isset($content_block)) {
-				$xpath = new DOMXPath($readability->dom);
-				$elems = @$xpath->query($extract_pattern, $content_block);
-				// check if our custom extraction pattern matched
-				if ($elems && $elems->length > 0) {
-					$extract_result = true;				
-					// get the first matched element
-					$content_block = $elems->item(0);
-                                        //echo "12121";
-					// clean it up
-					$readability->removeScripts($content_block);
-					$readability->prepArticle($content_block);
-				}
-			}
-		}
-	}
-            if ($do_content_extraction) {
-		// if we failed to extract content...
-		if (!$extract_result) {
-			if ($exclude_on_fail) {
-                            continue; // skip this and move to next item
-                        }
-                        $html = "";
-                        
-                        //TODO: get text sample for language detection
-			if ($valid_key) {
-                            $html .= $options->error_message_with_key;
-			}
-                        
-			// keep the original item description
-			$html .= $item->get_description();
-                        
-			//TODO: get text sample for language detection
-			if (!$valid_key) {
-                            $html .= $options->error_message;
-			}
-                        //echo "[" . $html . "]";
-		} else {    // if (!$extract_result) {
-                    if (is_object($content_block)) {
-			$readability->clean($content_block, 'select');
-			if ($options->rewrite_relative_urls) {
-                            makeAbsolute($effective_url, $content_block);
-                        }
-			// footnotes
-			if (($links == 'footnotes') && (strpos($effective_url, 'wikipedia.org') === false)) {
-				//$readability->addFootnotes($content_block);
-			}
-			if ($extract_pattern) {
-				// get outerHTML
-				$html = $content_block->ownerDocument->saveXML($content_block);
-                                echo "extract_pattern: [" . $html . "]" ;
-			} else {
-                                //echo "content_block: [" . $html . "]";
-				if ($content_block->childNodes->length == 1 && $content_block->firstChild->nodeType === XML_ELEMENT_NODE) {
-					$html = $content_block->firstChild->innerHTML;
-				} else {
-					$html = $content_block->innerHTML;
-                                        //echo "content_block: [" . $html . "]";
-				}
-                                //echo "content_block: [" . $html . "]";
-			}
-                    }   // if (is_object($content_block)) {
-                    else {
-                        $html = $content_block;
-                    }
-                    //echo "[".$html."]";
-                    // post-processing cleanup
-                    $html = preg_replace('!<p>[\s\h\v]*</p>!u', '', $html);
-                    if ($links == 'remove') {
-                            $html = preg_replace('!</?a[^>]*>!', '', $html);
-                    }
-                    //echo "[". $html ."]";
+            }
+            unset($_mime, $_act, $_name, $match);
+        }   // if (preg_match('!^Content-Type:\s*(([-\w]+)/([-\w\+]+))!im', $response['headers'], $match)) {
+        
+        if ($do_content_extraction) {
+            $html = $response['body'];
+            //echo "[" . $html .  "]";
+            // remove strange things
+            $html = str_replace('</[>', '', $html);
+            $html = convert_to_utf8($html, $response['headers']);
+            //echo "[" . $html .  "]";
 
-                    // get text sample for language detection
-                    $text_sample = strip_tags(substr($html, 0, 500));
-                    if (!$valid_key) {
-                            $html = make_substitutions($options->message_to_prepend).$html;
-                            $html .= make_substitutions($options->message_to_append);
+            if ($auto_extract) {
+                // check site config for single page URL - fetch it if found
+                if ($single_page_response = getSinglePage($item, $html, $effective_url)) {
+                    $html = $single_page_response['body'];
+                    // remove strange things
+                    $html = str_replace('</[>', '', $html);
+                    $html = convert_to_utf8($html, $single_page_response['headers']);
+                    $effective_url = $single_page_response['effective_url'];
+                    unset($single_page_response);
+                }
+                $extract_result = $extractor->process($html, $effective_url);
+                $readability = $extractor->readability;
+                $content_block = ($extract_result) ? $extractor->getContent() : null;
+                //echo "content_block: [" . $content_block->innerHTML . "] \n\n";
+                $title = ($extract_result) ? $extractor->getTitle() : '';
+            } else {
+                $readability = new Readability($html, $effective_url);
+                // content block is entire document (for now...)
+                $content_block = $readability->dom;
+                //echo $content_block->innerHTML;
+                //TODO: get title
+                $title = '';
+            }
+            //echo "[" . $content_block . "]" ;
+        }   // if ($do_content_extraction) {
+        
+        // use extracted title for both feed and item title if we're using single-item dummy feed
+        if ($isDummyFeed) {
+            $output->setTitle($title);
+            $newitem->setTitle($title);
+        }   // if ($isDummyFeed) {
+        
+        if ($do_content_extraction) {
+            if ($extract_pattern && isset($content_block)) {
+                $xpath = new DOMXPath($readability->dom);
+                $elems = @$xpath->query($extract_pattern, $content_block);
+                // check if our custom extraction pattern matched
+                if ($elems && $elems->length > 0) {
+                    $extract_result = true;
+                    // get the first matched element
+                    $content_block = $elems->item(0);
+                    //echo "12121";
+                    // clean it up
+                    $readability->removeScripts($content_block);
+                    $readability->prepArticle($content_block);
+                }   // if ($elems && $elems->length > 0) {
+            }   // if ($extract_pattern && isset($content_block)) {
+        }   // if ($do_content_extraction) {
+    }   // if ($permalink 
+    
+    // ----------------------
+    
+    if ($do_content_extraction) {
+        // if we failed to extract content...
+        if (!$extract_result) {
+            if ($exclude_on_fail) {
+                continue; // skip this and move to next item
+            }
+            $html = "";
+
+            //TODO: get text sample for language detection
+            if ($valid_key) {
+                $html .= $options->error_message_with_key;
+            }
+
+            // keep the original item description
+            $html .= $item->get_description();
+
+            //TODO: get text sample for language detection
+            if (!$valid_key) {
+                $html .= $options->error_message;
+            }
+            //echo "[" . $html . "]";
+        } else {    // if (!$extract_result) {
+            if (is_object($content_block)) {
+                $readability->clean($content_block, 'select');
+                if ($options->rewrite_relative_urls) {
+                    makeAbsolute($effective_url, $content_block);
+                }
+                // footnotes
+                if (($links == 'footnotes') && (strpos($effective_url, 'wikipedia.org') === false)) {
+                    //$readability->addFootnotes($content_block);
+                }
+                if ($extract_pattern) {
+                    // get outerHTML
+                    $html = $content_block->ownerDocument->saveXML($content_block);
+                    echo "extract_pattern: [" . $html . "]";
+                } else {
+                    //echo "content_block: [" . $html . "]";
+                    if ($content_block->childNodes->length == 1 && $content_block->firstChild->nodeType === XML_ELEMENT_NODE) {
+                        $html = $content_block->firstChild->innerHTML;
                     } else {
-                            $html = make_substitutions($options->message_to_prepend_with_key).$html;	
-                            $html .= make_substitutions($options->message_to_append_with_key);
+                        $html = $content_block->innerHTML;
+                        //echo "content_block: [" . $html . "]";
                     }
-                }   // if (!$extract_result) {   
-            }   // if ($do_content_extraction) {
-                /*
+                    //echo "content_block: [" . $html . "]";
+                }
+            }   // if (is_object($content_block)) {
+            else {
+                $html = $content_block;
+            }
+            //echo "[".$html."]";
+            // post-processing cleanup
+            $html = preg_replace('!<p>[\s\h\v]*</p>!u', '', $html);
+            if ($links == 'remove') {
+                $html = preg_replace('!</?a[^>]*>!', '', $html);
+            }
+            //echo "[". $html ."]";
+            // get text sample for language detection
+            $text_sample = strip_tags(substr($html, 0, 500));
+            if (!$valid_key) {
+                $html = make_substitutions($options->message_to_prepend) . $html;
+                $html .= make_substitutions($options->message_to_append);
+            } else {
+                $html = make_substitutions($options->message_to_prepend_with_key) . $html;
+                $html .= make_substitutions($options->message_to_append_with_key);
+            }
+        }   // if (!$extract_result) {   
+    }   // if ($do_content_extraction) {
+    /*
                 if ($format == 'atom') {
                         $newitem->addElement('content', $html);
                         $newitem->setDate((int)$item->get_date('U'));
@@ -812,29 +821,28 @@ foreach ($items as $key => $item) {
                         }
                 } else { 
                 */
-		if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
-			$newitem->addElement('guid', 'http://fivefilters.org/content-only/redirect.php?url='.urlencode($item->get_permalink()), array('isPermaLink'=>'false'));
-		} else {
-			$newitem->addElement('guid', $item->get_permalink(), array('isPermaLink'=>'true'));
-		}
-                
-                $identifier_url;
-                if (isset($effective_url)) {
-                    $identifier_url = remove_url_cruft(utf8_encode($effective_url));
-                }
-                else {
-                    $identifier_url = remove_url_cruft($item->get_permalink());
-                }
+    if ($valid_key && isset($_GET['pubsub'])) { // used only on fivefilters.org at the moment
+        $newitem->addElement('guid', 'http://fivefilters.org/content-only/redirect.php?url=' . urlencode($item->get_permalink()), array('isPermaLink' => 'false'));
+    } else {
+        $newitem->addElement('guid', $item->get_permalink(), array('isPermaLink' => 'true'));
+    }
 
-                $set_title = $title;
-                if ($set_title === null || trim($set_title) === "") {
-                    $set_title = $item->get_title();
-                }
-                if ($set_title === null || trim($set_title) === "") {
-                    $set_title = $item->get_description();
-                }
-                
-                // 信件BIG5編碼的問題
+    $identifier_url;
+    if (isset($effective_url)) {
+        $identifier_url = remove_url_cruft(utf8_encode($effective_url));
+    } else {
+        $identifier_url = remove_url_cruft($item->get_permalink());
+    }
+
+    $set_title = $title;
+    if ($set_title === null || trim($set_title) === "") {
+        $set_title = $item->get_title();
+    }
+    if ($set_title === null || trim($set_title) === "") {
+        $set_title = $item->get_description();
+    }
+
+    // 信件BIG5編碼的問題
 //                if (substr($set_title, 0, 2) === "?=" 
 //                        && substr($set_title, 0, -2) === "?=") {
 //                    try {
@@ -842,30 +850,30 @@ foreach ($items as $key => $item) {
 //                    }
 //                    catch (Exception $e) {}
 //                }
-                
-                $set_title = filter_title_by_url($set_title, $identifier_url, $item, $html);
 
-                //echo "[$set_title]";
-                
-                $set_title = str_replace("<br>", " ", $set_title);
-                $set_title = str_replace("<br/>", " ", $set_title);
-                $set_title = str_replace("<br />", " ", $set_title);
-                $set_title = str_replace("&amp;lt;br&amp;gt;", " ", $set_title);
-                $set_title = str_replace("&lt;br&gt;", " ", $set_title);
-                $set_title = str_replace("\n", " ", $set_title);
-                
-                $full_title = "";
-                $title_length_limit = 100;
-                if (mb_strlen($set_title, "UTF-8") > $title_length_limit) {
-                    $set_title = mb_substr($set_title, 0, $title_length_limit, "UTF-8") . "...";
-                    $full_title = "<h1>" . $title . "</h1>";
-                }
-                
-                //echo "[[$set_title]]";
-                
-                $newitem->setTitle($set_title);
-                
-                // 信件BIG5編碼的問題
+    $set_title = filter_title_by_url($set_title, $identifier_url, $item, $html);
+
+    //echo "[$set_title]";
+
+    $set_title = str_replace("<br>", " ", $set_title);
+    $set_title = str_replace("<br/>", " ", $set_title);
+    $set_title = str_replace("<br />", " ", $set_title);
+    $set_title = str_replace("&amp;lt;br&amp;gt;", " ", $set_title);
+    $set_title = str_replace("&lt;br&gt;", " ", $set_title);
+    $set_title = str_replace("\n", " ", $set_title);
+
+    $full_title = "";
+    $title_length_limit = 100;
+    if (mb_strlen($set_title, "UTF-8") > $title_length_limit) {
+        $set_title = mb_substr($set_title, 0, $title_length_limit, "UTF-8") . "...";
+        $full_title = "<h1>" . $title . "</h1>";
+    }
+
+    //echo "[[$set_title]]";
+
+    $newitem->setTitle($set_title);
+
+    // 信件BIG5編碼的問題
 //                if (substr($html, 0, 2) === "?=" 
 //                        && substr($html, 0, -2) === "?=") {
 //                    try {
@@ -873,116 +881,115 @@ foreach ($items as $key => $item) {
 //                    }
 //                    catch (Exception $e) {}
 //                }
-                
-                // 如果標題太長，則在這裡加入標題敘述
-                if ($full_title !== "") {
-                    $full_title = "<h1>" . $full_title . "</h1><br />";
+    // 如果標題太長，則在這裡加入標題敘述
+    if ($full_title !== "") {
+        $full_title = "<h1>" . $full_title . "</h1><br />";
+    }
+    $html = $full_title . $html;
+    $html = filter_description_by_url($html, $identifier_url, $item, ($extract_result));
+
+    $newitem->setDescription($html);
+
+    // set date
+    if ((int) $item->get_date('U') > 0) {
+        $newitem->setDate((int) $item->get_date('U'));
+    } elseif ($extractor->getDate()) {
+        $newitem->setDate($extractor->getDate());
+    }
+
+    // add authors
+    if ($authors = $item->get_authors()) {
+        foreach ($authors as $author) {
+            $newitem->addElement('dc:creator', $author->get_name());
+        }
+    } elseif ($authors = $extractor->getAuthors()) {
+        //TODO: make sure the list size is reasonable
+        foreach ($authors as $author) {
+            //TODO: addElement replaces this element each time
+            $newitem->addElement('dc:creator', $author);
+        }
+    }
+
+    // add language
+    if ($detect_language) {
+        $language = $extractor->getLanguage();
+        if (!$language) {
+            $language = $feed->get_language();
+        }
+        if (($detect_language == 3 || (!$language && $detect_language == 2)) && $text_sample) {
+            try {
+                if ($use_cld) {
+                    // Use PHP-CLD extension
+                    $php_cld = 'CLD\detect'; // in quotes to prevent PHP 5.2 parse error
+                    $res = $php_cld($text_sample);
+                    if (is_array($res) && count($res) > 0) {
+                        $language = $res[0]['code'];
+                    }
+                } else {
+                    //die('what');
+                    // Use PEAR's Text_LanguageDetect
+                    if (!isset($l)) {
+                        $l = new Text_LanguageDetect('libraries/language-detect/lang.dat', 'libraries/language-detect/unicode_blocks.dat');
+                    }
+                    $l_result = $l->detect($text_sample, 1);
+                    if (count($l_result) > 0) {
+                        $language = $language_codes[key($l_result)];
+                    }
                 }
-                $html = $full_title . $html;
-                $html = filter_description_by_url($html, $identifier_url, $item, ($extract_result) );
-                
-		$newitem->setDescription($html);
-		
-		// set date
-		if ((int)$item->get_date('U') > 0) {
-			$newitem->setDate((int)$item->get_date('U'));
-		} elseif ($extractor->getDate()) {
-			$newitem->setDate($extractor->getDate());
-		}
-		
-		// add authors
-		if ($authors = $item->get_authors()) {
-			foreach ($authors as $author) {
-				$newitem->addElement('dc:creator', $author->get_name());
-			}
-		} elseif ($authors = $extractor->getAuthors()) {
-			//TODO: make sure the list size is reasonable
-			foreach ($authors as $author) {
-				//TODO: addElement replaces this element each time
-				$newitem->addElement('dc:creator', $author);
-			}
-		}
-		
-		// add language
-		if ($detect_language) {
-			$language = $extractor->getLanguage();
-			if (!$language) {
-                            $language = $feed->get_language();
-                        }
-			if (($detect_language == 3 || (!$language && $detect_language == 2)) && $text_sample) {
-				try {
-					if ($use_cld) {
-						// Use PHP-CLD extension
-						$php_cld = 'CLD\detect'; // in quotes to prevent PHP 5.2 parse error
-						$res = $php_cld($text_sample);
-						if (is_array($res) && count($res) > 0) {
-							$language = $res[0]['code'];
-						}	
-					} else {
-						//die('what');
-						// Use PEAR's Text_LanguageDetect
-						if (!isset($l))	{
-							$l = new Text_LanguageDetect('libraries/language-detect/lang.dat', 'libraries/language-detect/unicode_blocks.dat');
-						}
-						$l_result = $l->detect($text_sample, 1);
-						if (count($l_result) > 0) {
-							$language = $language_codes[key($l_result)];
-						}
-					}
-				} catch (Exception $e) {
-					//die('error: '.$e);	
-					// do nothing
-				}
-			}
-			if ($language && (strlen($language) < 7)) {	
-				$newitem->addElement('dc:language', $language);
-			}
-		}
-		
-		// add MIME type (if it appeared in our exclusions lists)
-		if (isset($type)) {
-                    $newitem->addElement('dc:format', $type);
-                }
-		// add effective URL (URL after redirects)
-		if (isset($effective_url)) {
-			//TODO: ensure $effective_url is valid witout - sometimes it causes problems, e.g.
-			//http://www.siasat.pk/forum/showthread.php?108883-Pakistan-Chowk-by-Rana-Mubashir-–-25th-March-2012-Special-Program-from-Liari-(Karachi)
-			//temporary measure: use utf8_encode()
-			$newitem->addElement('dc:identifier', remove_url_cruft(utf8_encode($effective_url)));
-		} else {
-			$newitem->addElement('dc:identifier', remove_url_cruft($item->get_permalink()));
-		}
+            } catch (Exception $e) {
+                //die('error: '.$e);	
+                // do nothing
+            }
+        }
+        if ($language && (strlen($language) < 7)) {
+            $newitem->addElement('dc:language', $language);
+        }
+    }
+
+    // add MIME type (if it appeared in our exclusions lists)
+    if (isset($type)) {
+        $newitem->addElement('dc:format', $type);
+    }
+    // add effective URL (URL after redirects)
+    if (isset($effective_url)) {
+            //TODO: ensure $effective_url is valid witout - sometimes it causes problems, e.g.
+            //http://www.siasat.pk/forum/showthread.php?108883-Pakistan-Chowk-by-Rana-Mubashir-–-25th-March-2012-Special-Program-from-Liari-(Karachi)
+            //temporary measure: use utf8_encode()
+            $newitem->addElement('dc:identifier', remove_url_cruft(utf8_encode($effective_url)));
+    } else {
+            $newitem->addElement('dc:identifier', remove_url_cruft($item->get_permalink()));
+    }
                 
                 
-		// check for enclosures
-		if ($options->keep_enclosures) {
-			if ($enclosures = $item->get_enclosures()) {
-				foreach ($enclosures as $enclosure) {
-					if (!$enclosure->get_link()) continue;
-					$enc = array();
-					// Media RSS spec ($enc): http://search.yahoo.com/mrss
-					// SimplePie methods ($enclosure): http://simplepie.org/wiki/reference/start#methods4
-					$enc['url'] = $enclosure->get_link();
-					if ($enclosure->get_length()) $enc['fileSize'] = $enclosure->get_length();
-					if ($enclosure->get_type()) $enc['type'] = $enclosure->get_type();
-					if ($enclosure->get_medium()) $enc['medium'] = $enclosure->get_medium();
-					if ($enclosure->get_expression()) $enc['expression'] = $enclosure->get_expression();
-					if ($enclosure->get_bitrate()) $enc['bitrate'] = $enclosure->get_bitrate();
-					if ($enclosure->get_framerate()) $enc['framerate'] = $enclosure->get_framerate();
-					if ($enclosure->get_sampling_rate()) $enc['samplingrate'] = $enclosure->get_sampling_rate();
-					if ($enclosure->get_channels()) $enc['channels'] = $enclosure->get_channels();
-					if ($enclosure->get_duration()) $enc['duration'] = $enclosure->get_duration();
-					if ($enclosure->get_height()) $enc['height'] = $enclosure->get_height();
-					if ($enclosure->get_width()) $enc['width'] = $enclosure->get_width();
-					if ($enclosure->get_language()) $enc['lang'] = $enclosure->get_language();
-					$newitem->addElement('media:content', '', $enc);
-				}
-			}
-		}
-	/* } */
-	$output->addItem($newitem);
-	unset($html);
-	$item_count++;
+    // check for enclosures
+    if ($options->keep_enclosures) {
+            if ($enclosures = $item->get_enclosures()) {
+                    foreach ($enclosures as $enclosure) {
+                            if (!$enclosure->get_link()) continue;
+                            $enc = array();
+                            // Media RSS spec ($enc): http://search.yahoo.com/mrss
+                            // SimplePie methods ($enclosure): http://simplepie.org/wiki/reference/start#methods4
+                            $enc['url'] = $enclosure->get_link();
+                            if ($enclosure->get_length()) $enc['fileSize'] = $enclosure->get_length();
+                            if ($enclosure->get_type()) $enc['type'] = $enclosure->get_type();
+                            if ($enclosure->get_medium()) $enc['medium'] = $enclosure->get_medium();
+                            if ($enclosure->get_expression()) $enc['expression'] = $enclosure->get_expression();
+                            if ($enclosure->get_bitrate()) $enc['bitrate'] = $enclosure->get_bitrate();
+                            if ($enclosure->get_framerate()) $enc['framerate'] = $enclosure->get_framerate();
+                            if ($enclosure->get_sampling_rate()) $enc['samplingrate'] = $enclosure->get_sampling_rate();
+                            if ($enclosure->get_channels()) $enc['channels'] = $enclosure->get_channels();
+                            if ($enclosure->get_duration()) $enc['duration'] = $enclosure->get_duration();
+                            if ($enclosure->get_height()) $enc['height'] = $enclosure->get_height();
+                            if ($enclosure->get_width()) $enc['width'] = $enclosure->get_width();
+                            if ($enclosure->get_language()) $enc['lang'] = $enclosure->get_language();
+                            $newitem->addElement('media:content', '', $enc);
+                    }   // foreach ($enclosures as $enclosure) {
+            }   // if ($enclosures = $item->get_enclosures()) {
+    }   // if ($options->keep_enclosures) {
+    /* } */
+    $output->addItem($newitem);
+    unset($html);
+    $item_count++;
 }
 
 // output feed
