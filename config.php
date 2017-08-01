@@ -22,7 +22,7 @@ if (!isset($options)) {
 // for 10 minutes. Initially it's best
 // to keep this disabled to make sure everything works
 // as expected.1
-$options->caching = false;
+$options->caching = true;
 
 // Enable service
 // ----------------------

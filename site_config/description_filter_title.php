@@ -91,6 +91,9 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "https://data-sci.info/")) {
         $title = strip_postfix_to($title, " | Learning by Hacking");
     }
+    else if (startsWith($_GET["url"], "https://feeds.feedburner.com/quicktop")) {
+        $title = strip_postfix_to($title, " | ㊣軟體玩家");
+    }
     else if (startsWith($url, "http://tech.tgbus.com/")) {
         // Feed Title: Hi科技 - 电玩巴士
         // Feed URL: 
