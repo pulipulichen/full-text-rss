@@ -85,6 +85,9 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
     else if (startsWith($url, "http://i.imgur.com/")) {
         $title = htmlspecialchars_decode($item->get_title());
     }
+    else if (startsWith($url, "http://hkacger.com/")) {
+        $title = strip_postfix_to($title, "| ACGer:日系ACG情報資訊及評論網站");
+    }
     else if (startsWith($url, "https://www.damanwoo.com/node/")) {
         $title = strip_postfix_to($title, " | 大人物");
     }
