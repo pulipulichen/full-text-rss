@@ -104,6 +104,18 @@ function filter_title_by_url($title, $url, $item, $html = NULL) {
         $title = strip_postfix_to($title, " - ");
         $title = strip_postfix_to($title, " - ");
     }
+    else if (startsWith($url, "http://iphone.tgbus.com/")) {
+        // Feed Title: ...
+        // Feed URL: 
+        // FTR URL: http://iphone.tgbus.com/news/class/201706/20170602125634.shtml
+        $title = strip_postfix_to($title, " - ");
+    }
+    else if (startsWith($url, "http://www.niusnews.com")) {
+        // Feed Title: ...
+        // Feed URL: 
+        // FTR URL: http://www.niusnews.com/=P27z6c71
+        $title = strip_postfix_to($title, " | 妞新聞 niusnews");
+    }
     else if (startsWith($url, "http://www.ipc.me/")) {
         $title = strip_postfix_to($title, " | iPc.me");
     }
